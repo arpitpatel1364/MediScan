@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Offline - MediScan Pro{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card">
+        <div class="text-center py-12">
+            <div class="medical-icon bg-red-100 mb-6">
+                <i class="fas fa-wifi-slash text-red-500 text-4xl"></i>
+            </div>
+            <h3 class="text-2xl font-display font-semibold text-gray-800 mb-4">You're Offline</h3>
+            <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                Please check your internet connection and try again.
+            </p>
+            <button onclick="window.location.reload()" class="btn-primary inline-flex">
+                <i class="fas fa-redo"></i>
+                <span>Retry</span>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %} 

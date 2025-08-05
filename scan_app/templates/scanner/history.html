@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% block title %}Scan History - MediScan Pro{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <div>
+            <h1 class="text-4xl font-display font-bold text-medical-primary mb-2 flex items-center">
+                <i class="fas fa-history text-primary-500 mr-4"></i>
+                Scan History
+            </h1>
+            <p class="text-gray-600">Track and manage all your medicine scans</p>
+        </div>
+        <div class="flex items-center space-x-3 mt-4 md:mt-0">
+            <div class="bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
+                <span class="text-sm text-gray-600">Total Scans: </span>
+                <span class="font-bold text-primary-600">{{ scans|length|default:"0" }}</span>
+            </div>
+            {% comment %} <a href="{% url 'upload_image' %}" class="btn-primary"> {% endcomment %}
+                <i class="fas fa-plus"></i>
+                <span>New Scan</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="card mb-8">
+        <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input 
+                        type="text" 
+                        placeholder="Search medicines..." 
+                        class="form-input pl-10"
+                        id="searchInput"
+                        onkeyup="filterScans()"
+                    >
+                </div>
+            </div>
+            <div class="flex space-x-3">
+                <select class="form-input" id="sortSelect" onchange="sortScans()">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="name">Medicine Name</option>
+                </select>
+                <select class="form-input" id="filterSelect" onchange="filterByType()">
+                    <option value="all">All Scans</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scan History -->
+    {% if scans %}
+        <div class="space-y-6" id="scansList">
+            {% for scan in scans %}
+            <div class="card scan-item hover-lift" data-medicine="{{ scan.medicine_name|lower }}" data-date="{{ scan.created_at|date:'Y-m-d' }}">
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <!-- Medicine Image -->
+                    <div class="lg:w-1/4">
+                        <div class="relative group">
+                            <img 
+                                src="{{ scan.image.url }}" 
+                                alt="Medicine Strip" 
+                                class="medicine-image w-full h-48 lg:h-32 object-cover cursor-pointer"
+                                onclick="openImageModal('{{ scan.image.url }}', '{{ scan.medicine_name }}')"
+                            >
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-expand text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Medicine Details -->
+                    <div class="lg:w-2/4">
+                        <div class="flex items-start justify-between mb-3">
+                            <h3 class="text-xl font-display font-semibold text-gray-800">{{ scan.medicine_name }}</h3>
+                            <div class="flex items-center space-x-2">
+                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-1 rounded-full">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    Verified
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2 text-sm text-gray-600">
+                            <div class="flex items-center">
+                                <i class="fas fa-calendar text-primary-500 mr-2 w-4"></i>
+                                <span>Scanned {{ scan.created_at|timesince }} ago</span>
+                            </div>
+                            {% if scan.medicine_info.uses %}
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-blue-500 mr-2 w-4 mt-0.5"></i>
+                                <span>{{ scan.medicine_info.uses|truncatewords:10 }}</span>
+                            </div>
+                            {% endif %}
+                            {% if scan.medicine_info.dosage %}
+                            <div class="flex items-center">
+                                <i class="fas fa-pills text-green-500 mr-2 w-4"></i>
+                                <span>{{ scan.medicine_info.dosage }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Tags -->
+                        <div class="flex flex-wrap gap-2 mt-3">
+                            {% if scan.tags %}
+                                {% for tag in scan.tags %}
+                                <span class="bg-primary-100 text-primary-700 text-xs px-2 py-1 rounded-full">{{ tag }}</span>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="lg:w-1/4 flex lg:flex-col gap-2">
+                        <a href="../medicine_detail" class="btn-primary flex-1 justify-center">
+                            <i class="fas fa-eye"></i>
+                            <span>View Details</span>
+                        </a>
+                        <a href="../reminders?medicine_name={{ scan.medicine_name }}" class="btn-medical flex-1 justify-center">
+                            <i class="fas fa-bell"></i>
+                            <span>Set Reminder</span>
+                        </a>
+                        <div class="flex space-x-2">
+                            <button onclick="shareResult('{{ scan.medicine_name }}', '{{ scan.id }}')" class="btn-secondary flex-1 justify-center">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                            <button onclick="deleteConfirm('{{ scan.id }}', '{{ scan.medicine_name }}')" class="btn-danger flex-1 justify-center">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="flex justify-center mt-12">
+            <nav class="flex items-center space-x-2">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1" class="btn-secondary">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                    <a href="?page={{ page_obj.previous_page_number }}" class="btn-secondary">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                {% endif %}
+                
+                <span class="px-4 py-2 text-gray-600">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="btn-secondary">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}" class="btn-secondary">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+
+    {% else %}
+        <!-- Empty State -->
+        <div class="card text-center py-16">
+            <div class="medical-icon bg-gray-100 mb-6">
+                <i class="fas fa-history text-gray-400 text-4xl"></i>
+            </div>
+            <h3 class="text-2xl font-display font-semibold text-gray-800 mb-4">No Scan History Yet</h3>
+            <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                Start by scanning your first medicine to build your health history and get detailed information about your medications.
+            </p>
+            {% comment %} <a href="{% url 'upload_image' %}" class="btn-primary inline-flex"> {% endcomment %}
+                <i class="fas fa-camera"></i>
+                <span>Scan Your First Medicine</span>
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
+    <div class="relative max-w-4xl w-full">
+        <button onclick="closeImageModal()" class="absolute -top-12 right-0 text-white hover:text-gray-300 text-2xl">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="modalImage" src="" alt="" class="w-full h-auto rounded-lg shadow-2xl">
+        <div class="bg-white p-4 rounded-b-lg">
+            <h3 id="modalTitle" class="font-semibold text-gray-800"></h3>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-md w-full">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Delete Scan</h3>
+            <p class="text-gray-600 mb-6">Are you sure you want to delete the scan for <span id="deleteMedicineName" class="font-semibold"></span>? This action cannot be undone.</p>
+            <div class="flex space-x-3">
+                <button onclick="closeDeleteModal()" class="btn-secondary flex-1 justify-center">Cancel</button>
+                <button onclick="confirmDelete()" class="btn-danger flex-1 justify-center">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let deleteItemId = null;
+
+function filterScans() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const scanItems = document.querySelectorAll('.scan-item');
+    
+    scanItems.forEach(item => {
+        const medicineName = item.getAttribute('data-medicine');
+        if (medicineName.includes(searchTerm)) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+function sortScans() {
+    const sortBy = document.getElementById('sortSelect').value;
+    const scansList = document.getElementById('scansList');
+    const scanItems = Array.from(document.querySelectorAll('.scan-item'));
+    
+    scanItems.sort((a, b) => {
+        if (sortBy === 'newest') {
+            return new Date(b.getAttribute('data-date')) - new Date(a.getAttribute('data-date'));
+        } else if (sortBy === 'oldest') {
+            return new Date(a.getAttribute('data-date')) - new Date(b.getAttribute('data-date'));
+        } else if (sortBy === 'name') {
+            return a.getAttribute('data-medicine').localeCompare(b.getAttribute('data-medicine'));
+        }
+    });
+    
+    scanItems.forEach(item => scansList.appendChild(item));
+}
+
+function filterByType() {
+    const filterBy = document.getElementById('filterSelect').value;
+    const scanItems = document.querySelectorAll('.scan-item');
+    const now = new Date();
+    
+    scanItems.forEach(item => {
+        const scanDate = new Date(item.getAttribute('data-date'));
+        let show = true;
+        
+        if (filterBy === 'today') {
+            show = scanDate.toDateString() === now.toDateString();
+        } else if (filterBy === 'week') {
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            show = scanDate >= weekAgo;
+        } else if (filterBy === 'month') {
+            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            show = scanDate >= monthAgo;
+        }
+        
+        item.style.display = show ? 'block' : 'none';
+    });
+}
+
+function openImageModal(imageSrc, medicineName) {
+    document.getElementById('modalImage').src = imageSrc;
+    document.getElementById('modalTitle').textContent = medicineName;
+    document.getElementById('imageModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+function deleteConfirm(itemId, medicineName) {
+    deleteItemId = itemId;
+    document.getElementById('deleteMedicineName').textContent = medicineName;
+    document.getElementById('deleteModal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    deleteItemId = null;
+}
+
+function confirmDelete() {
+    if (deleteItemId) {
+        // This would typically make an AJAX call to delete the item
+        fetch(`/delete-scan/${deleteItemId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        }).then(() => {
+            location.reload();
+        });
+    }
+    closeDeleteModal();
+}
+
+function shareResult(medicineName, scanId) {
+    if (navigator.share) {
+        navigator.share({
+            title: `Medicine Scan - ${medicineName}`,
+            text: `Check out this medicine information from MediScan Pro`,
+            url: window.location.origin + `/scan/${scanId}/`
+        });
+    } else {
+        navigator.clipboard.writeText(window.location.origin + `/scan/${scanId}/`);
+        alert('Link copied to clipboard!');
+    }
+}
+
+// Close modals when clicking outside
+document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) closeImageModal();
+});
+
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+});
+</script>
+{% endblock %}

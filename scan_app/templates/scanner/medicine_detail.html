@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% block title %}{{ medicine_name }} - MediScan Pro{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <div>
+            <h1 class="text-4xl font-display font-bold text-medical-primary mb-2 flex items-center">
+                <i class="fas fa-pills text-primary-500 mr-4"></i>
+                {{ medicine_name|default:"Medicine Details" }}
+            </h1>
+            <p class="text-gray-600">Scanned on {{ scan_date|date:"F d, Y at H:i" }}</p>
+        </div>
+        <div class="flex items-center space-x-3 mt-4 md:mt-0">
+            <button onclick="location.href='/reminders/add/?medicine_name={{ medicine_name|urlencode }}&dosage=1 tablet'" class="btn-primary">
+                <i class="fas fa-bell"></i>
+                <span>Set Reminder</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Medicine Image and Basic Info -->
+    <div class="grid md:grid-cols-2 gap-8 mb-8">
+        <!-- Image -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="text-xl font-semibold text-gray-800">Medicine Image</h2>
+            </div>
+            <div class="p-6">
+                {% if image_url %}
+                    <img src="{{ image_url }}" alt="{{ medicine_name }}" class="w-full rounded-lg shadow-md">
+                {% else %}
+                    <div class="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-pills text-4xl text-gray-400"></i>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Basic Information -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="text-xl font-semibold text-gray-800">Basic Information</h2>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-600">Medicine Name:</span>
+                    <span class="font-semibold text-gray-800">{{ medicine_name|default:"Unknown" }}</span>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-600">Confidence Score:</span>
+                    <span class="font-semibold text-gray-800">{{ confidence|floatformat:1 }}%</span>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-600">Scan Date:</span>
+                    <span class="font-semibold text-gray-800">{{ scan_date|date:"M d, Y" }}</span>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-600">Scan Time:</span>
+                    <span class="font-semibold text-gray-800">{{ scan_date|date:"H:i" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medicine Information -->
+    {% if medicine_info %}
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="text-xl font-semibold text-gray-800">Medicine Information</h2>
+        </div>
+        <div class="p-6">
+            {% if medicine_info.uses %}
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Uses</h3>
+                <p class="text-gray-600">{{ medicine_info.uses }}</p>
+            </div>
+            {% endif %}
+            
+            {% if medicine_info.side_effects %}
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Side Effects</h3>
+                <p class="text-gray-600">{{ medicine_info.side_effects }}</p>
+            </div>
+            {% endif %}
+            
+            {% if medicine_info.precautions %}
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Precautions</h3>
+                <p class="text-gray-600">{{ medicine_info.precautions }}</p>
+            </div>
+            {% endif %}
+            
+            {% if medicine_info.dosage %}
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Dosage</h3>
+                <p class="text-gray-600">{{ medicine_info.dosage }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="text-xl font-semibold text-gray-800">Actions</h2>
+        </div>
+        <div class="p-6">
+            <div class="grid md:grid-cols-3 gap-4">
+                <button onclick="location.href='/reminders/add/?medicine_name={{ medicine_name|urlencode }}&dosage=1 tablet'" class="action-card">
+                    <div class="medical-icon bg-green-100">
+                        <i class="fas fa-bell text-green-500"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-800">Set Reminder</h3>
+                    <p class="text-sm text-gray-600">Create medication reminder</p>
+                </button>
+                
+                <button onclick="shareMedicine()" class="action-card">
+                    <div class="medical-icon bg-blue-100">
+                        <i class="fas fa-share text-blue-500"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-800">Share</h3>
+                    <p class="text-sm text-gray-600">Share with healthcare provider</p>
+                </button>
+                
+                <button onclick="downloadInfo()" class="action-card">
+                    <div class="medical-icon bg-purple-100">
+                        <i class="fas fa-download text-purple-500"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-800">Download</h3>
+                    <p class="text-sm text-gray-600">Save information as PDF</p>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function shareMedicine() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'Medicine Information',
+            text: 'Medicine: {{ medicine_name }}',
+            url: window.location.href
+        });
+    } else {
+        // Fallback for browsers that don't support Web Share API
+        alert('Share feature not supported in this browser');
+    }
+}
+
+function downloadInfo() {
+    // This would generate and download a PDF
+    alert('Download feature coming soon!');
+}
+</script>
+{% endblock %} 

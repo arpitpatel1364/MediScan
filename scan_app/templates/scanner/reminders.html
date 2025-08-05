@@ -1,0 +1,613 @@
+{% extends 'base.html' %}
+{% block title %}Medicine Reminders - MediScan Pro{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <div>
+            <h1 class="text-4xl font-display font-bold text-medical-primary mb-2 flex items-center">
+                <i class="fas fa-bell text-primary-500 mr-4"></i>
+                Medicine Reminders
+            </h1>
+            <p class="text-gray-600">Never miss a dose with smart medication reminders</p>
+        </div>
+        <div class="flex items-center space-x-3 mt-4 md:mt-0">
+            <div class="bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
+                <span class="text-sm text-gray-600">Active: </span>
+                <span class="font-bold text-green-600">{{ active_reminders|length|default:"0" }}</span>
+            </div>
+            <button onclick="openReminderModal()" class="btn-primary">
+                <i class="fas fa-plus"></i>
+                <span>Add Reminder</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid md:grid-cols-4 gap-4 mb-8">
+        <div class="stats-card">
+            <div class="stats-number">{{ reminders|length|default:"0" }}</div>
+            <div class="stats-label">Total Reminders</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-number">{{ active_reminders|length|default:"0" }}</div>
+            <div class="stats-label">Active Today</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-number">{{ completed_today|default:"0" }}</div>
+            <div class="stats-label">Completed Today</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-number">{{ streak_days|default:"0" }}</div>
+            <div class="stats-label">Day Streak</div>
+        </div>
+    </div>
+
+    <!-- Today's Reminders -->
+    <div class="card mb-8">
+        <div class="card-header">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-display font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-clock text-blue-500 mr-3"></i>
+                    Today's Schedule
+                </h2>
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-500">{{ current_date|date:"l, F d, Y" }}</span>
+                </div>
+            </div>
+        </div>
+
+        {% if todays_reminders %}
+            <div class="space-y-4">
+                {% for reminder in todays_reminders %}
+                <div class="reminder-card flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-gradient-to-r from-primary-500 to-primary-600 p-3 rounded-xl text-white">
+                            <i class="fas fa-pills text-lg"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">{{ reminder.medicine_name }}</h4>
+                            <p class="text-sm text-gray-600">{{ reminder.dosage }}</p>
+                            <div class="flex items-center space-x-4 mt-1">
+                                <span class="text-sm text-gray-500">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    {{ reminder.time }}
+                                </span>
+                                <span class="text-sm text-gray-500">
+                                    <i class="fas fa-repeat mr-1"></i>
+                                    {{ reminder.frequency }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        {% if reminder.completed %}
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-3 py-1 rounded-full">
+                                <i class="fas fa-check mr-1"></i>
+                                Taken
+                            </span>
+                        {% else %}
+                            <button data-reminder-id="{{ reminder.id }}" class="btn-primary mark-complete-btn">
+                                <i class="fas fa-check"></i>
+                                <span>Mark Taken</span>
+                            </button>
+                            <button data-reminder-id="{{ reminder.id }}" class="btn-secondary snooze-btn">
+                                <i class="fas fa-clock"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-8">
+                <div class="medical-icon bg-blue-100">
+                    <i class="fas fa-calendar-check text-blue-500"></i>
+                </div>
+                <p class="text-gray-600 font-medium">No reminders scheduled for today</p>
+                <p class="text-sm text-gray-500 mt-1">Add your first reminder to get started</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- All Reminders -->
+    <div class="card">
+        <div class="card-header">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-display font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-list text-primary-500 mr-3"></i>
+                    All Reminders
+                </h2>
+                <div class="flex items-center space-x-3">
+                    <select class="form-input" onchange="filterReminders(this.value)">
+                        <option value="all">All Reminders</option>
+                        <option value="active">Active Only</option>
+                        <option value="paused">Paused Only</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        {% if reminders %}
+            <div class="space-y-4" id="remindersList">
+                {% for reminder in reminders %}
+                <div class="reminder-card reminder-item" data-status="{% if reminder.is_active %}active{% else %}paused{% endif %}">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex items-start space-x-4">
+                            <div class="bg-gradient-to-r from-medical-blue to-blue-600 p-3 rounded-xl text-white flex-shrink-0">
+                                <i class="fas fa-prescription-bottle text-lg"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-800 text-lg">{{ reminder.medicine_name }}</h4>
+                                <p class="text-gray-600 mb-2">{{ reminder.dosage }}</p>
+                                
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-500">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-clock mr-1 text-blue-500"></i>
+                                        <span>{{ reminder.schedule }}</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-calendar mr-1 text-green-500"></i>
+                                        <span>{{ reminder.frequency|default:"Daily" }}</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-calendar-plus mr-1 text-purple-500"></i>
+                                        <span>Since {{ reminder.created_at|date:"M d" }}</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-chart-line mr-1 text-orange-500"></i>
+                                        <span>{{ reminder.completion_rate|default:"0" }}% completed</span>
+                                    </div>
+                                </div>
+
+                                {% if reminder.notes %}
+                                <div class="mt-2 p-2 bg-gray-50 rounded-lg">
+                                    <p class="text-sm text-gray-600">
+                                        <i class="fas fa-sticky-note mr-1"></i>
+                                        {{ reminder.notes }}
+                                    </p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-2">
+                            <div class="flex items-center space-x-1">
+                                {% if reminder.is_active %}
+                                    <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-1 rounded-full">
+                                        <i class="fas fa-play mr-1"></i>
+                                        Active
+                                    </span>
+                                {% else %}
+                                    <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded-full">
+                                        <i class="fas fa-pause mr-1"></i>
+                                        Paused
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="flex space-x-1">
+                                <button data-reminder-id="{{ reminder.id }}" class="btn-secondary p-2 edit-btn" {% if not reminder.id %}disabled{% endif %}>
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                {% if reminder.is_active %}
+                                    <button type="button" data-reminder-id="{{ reminder.id }}" class="btn-secondary p-2 pause-btn" {% if not reminder.id %}disabled{% endif %}>
+                                        <i class="fas fa-pause"></i>
+                                    </button>
+                                {% else %}
+                                    <button data-reminder-id="{{ reminder.id }}" class="btn-medical p-2 resume-btn" {% if not reminder.id %}disabled{% endif %}>
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                {% endif %}
+                                <button data-reminder-id="{{ reminder.id }}" data-medicine-name="{{ reminder.medicine_name|default:'Unknown' }}" class="btn-danger p-2 delete-btn" {% if not reminder.id %}disabled{% endif %}>
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <div class="medical-icon bg-gray-100 mb-6">
+                    <i class="fas fa-bell-slash text-gray-400 text-4xl"></i>
+                </div>
+                <h3 class="text-2xl font-display font-semibold text-gray-800 mb-4">No Reminders Yet</h3>
+                <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                    Set up your first medication reminder to stay on track with your health routine.
+                </p>
+                <button onclick="openReminderModal()" class="btn-primary inline-flex">
+                    <i class="fas fa-plus"></i>
+                    <span>Create Your First Reminder</span>
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add/Edit Reminder Modal -->
+<div id="reminderModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-screen overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-2xl font-display font-semibold text-gray-800 flex items-center">
+                <i class="fas fa-bell text-primary-500 mr-3"></i>
+                <span id="modalTitle">Add New Reminder</span>
+            </h3>
+            <button onclick="closeReminderModal()" class="text-gray-400 hover:text-gray-600 text-2xl">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="reminderForm" class="space-y-6">
+            {% csrf_token %}
+            <input type="hidden" id="reminderId" name="reminder_id">
+            
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label">Medicine Name</label>
+                    <input 
+                        type="text" 
+                        id="medicineName" 
+                        name="medicine_name" 
+                        class="form-input" 
+                        placeholder="Enter medicine name"
+                        value="{{ request.GET.medicine_name }}"
+                        required
+                    >
+                </div>
+                <div>
+                    <label class="form-label">Dosage</label>
+                    <input 
+                        type="text" 
+                        id="dosage" 
+                        name="dosage" 
+                        class="form-input" 
+                        placeholder="e.g., 1 tablet, 5ml"
+                        value="{{ request.GET.dosage }}"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label">Frequency</label>
+                    <select id="frequency" name="frequency" class="form-input" onchange="updateTimeSlots()">
+                        <option value="once">Once daily</option>
+                        <option value="twice">Twice daily</option>
+                        <option value="thrice">Three times daily</option>
+                        <option value="four">Four times daily</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Duration</label>
+                    <select id="duration" name="duration" class="form-input">
+                        <option value="ongoing">Ongoing</option>
+                        <option value="3">3 days</option>
+                        <option value="7">1 week</option>
+                        <option value="14">2 weeks</option>
+                        <option value="30">1 month</option>
+                        <option value="90">3 months</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="timeSlots">
+                <label class="form-label">Reminder Times</label>
+                <div id="timeInputs" class="space-y-2">
+                    <input type="time" name="time_1" class="form-input" value="08:00" required>
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label">Notes (Optional)</label>
+                <textarea 
+                    id="notes" 
+                    name="notes" 
+                    class="form-input" 
+                    rows="3" 
+                    placeholder="Any special instructions or notes..."
+                ></textarea>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label">Start Date</label>
+                    <input 
+                        type="date" 
+                        id="startDate" 
+                        name="start_date" 
+                        class="form-input" 
+                        required
+                    >
+                </div>
+                <div>
+                    <label class="form-label">Notification Sound</label>
+                    <select id="sound" name="sound" class="form-input">
+                        <option value="default">Default</option>
+                        <option value="gentle">Gentle Bell</option>
+                        <option value="chime">Chime</option>
+                        <option value="beep">Beep</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex space-x-3">
+                <button type="button" onclick="closeReminderModal()" class="btn-secondary flex-1 justify-center">
+                    Cancel
+                </button>
+                <button type="submit" class="btn-primary flex-1 justify-center">
+                    <i class="fas fa-save"></i>
+                    <span>Save Reminder</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-md w-full">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Delete Reminder</h3>
+            <p class="text-gray-600 mb-6">Are you sure you want to delete the reminder for <span id="deleteReminderName" class="font-semibold"></span>?</p>
+            <div class="flex space-x-3">
+                <button onclick="closeDeleteModal()" class="btn-secondary flex-1 justify-center">Cancel</button>
+                <button onclick="confirmDeleteReminder()" class="btn-danger flex-1 justify-center">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let deleteReminderId = null;
+
+// Set today's date as default
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('startDate').value = today;
+});
+
+function openReminderModal(reminderId = null) {
+    if (reminderId) {
+        document.getElementById('modalTitle').textContent = 'Edit Reminder';
+        document.getElementById('reminderId').value = reminderId;
+        // Load reminder data via AJAX
+        loadReminderData(reminderId);
+    } else {
+        document.getElementById('modalTitle').textContent = 'Add New Reminder';
+        document.getElementById('reminderForm').reset();
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('startDate').value = today;
+    }
+    document.getElementById('reminderModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeReminderModal() {
+    document.getElementById('reminderModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+function updateTimeSlots() {
+    const frequency = document.getElementById('frequency').value;
+    const timeInputs = document.getElementById('timeInputs');
+    let slots = 1;
+    
+    switch(frequency) {
+        case 'twice': slots = 2; break;
+        case 'thrice': slots = 3; break;
+        case 'four': slots = 4; break;
+        case 'custom': 
+            slots = parseInt(prompt('How many times per day?') || 1);
+            break;
+    }
+    
+    timeInputs.innerHTML = '';
+    const defaultTimes = ['08:00', '14:00', '20:00', '02:00'];
+    
+    for (let i = 0; i < slots; i++) {
+        const input = document.createElement('input');
+        input.type = 'time';
+        input.name = `time_${i + 1}`;
+        input.className = 'form-input';
+        input.value = defaultTimes[i] || '08:00';
+        input.required = true;
+        timeInputs.appendChild(input);
+    }
+}
+
+function filterReminders(status) {
+    const reminderItems = document.querySelectorAll('.reminder-item');
+    
+    reminderItems.forEach(item => {
+        if (status === 'all' || item.getAttribute('data-status') === status) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+function markComplete(reminderId) {
+    fetch(`/mark-reminder-complete/${reminderId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    }).then(() => {
+        location.reload();
+    });
+}
+
+function snoozeReminder(reminderId) {
+    const minutes = prompt('Snooze for how many minutes?', '15');
+    if (minutes) {
+        fetch(`/snooze-reminder/${reminderId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ minutes: parseInt(minutes) })
+        }).then(() => {
+            alert(`Reminder snoozed for ${minutes} minutes`);
+        });
+    }
+}
+
+function pauseReminder(reminderId) {
+    fetch(`/pause-reminder/${reminderId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    }).then(() => {
+        location.reload();
+    });
+}
+
+function resumeReminder(reminderId) {
+    fetch(`/resume-reminder/${reminderId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    }).then(() => {
+        location.reload();
+    });
+}
+
+function editReminder(reminderId) {
+    openReminderModal(reminderId);
+}
+
+function deleteReminder(reminderId, medicineName) {
+    deleteReminderId = reminderId;
+    document.getElementById('deleteReminderName').textContent = medicineName;
+    document.getElementById('deleteModal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    deleteReminderId = null;
+}
+
+function confirmDeleteReminder() {
+    if (deleteReminderId) {
+        fetch(`/delete-reminder/${deleteReminderId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        }).then(() => {
+            location.reload();
+        });
+    }
+    closeDeleteModal();
+}
+
+function loadReminderData(reminderId) {
+    fetch(`/get-reminder/${reminderId}/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('medicineName').value = data.medicine_name;
+            document.getElementById('dosage').value = data.dosage;
+            document.getElementById('frequency').value = data.frequency;
+            document.getElementById('notes').value = data.notes || '';
+            // Update other fields as needed
+            updateTimeSlots();
+        });
+}
+
+// Form submission
+document.getElementById('reminderForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const url = document.getElementById('reminderId').value ? 
+        `/edit-reminder/${document.getElementById('reminderId').value}/` : 
+        '/add-reminder/';
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    }).then(() => {
+        location.reload();
+    });
+});
+
+// Event listeners for data attribute buttons
+document.addEventListener('DOMContentLoaded', function() {
+    // Mark complete buttons
+    document.querySelectorAll('.mark-complete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const reminderId = this.getAttribute('data-reminder-id');
+            markComplete(reminderId);
+        });
+    });
+
+    // Snooze buttons
+    document.querySelectorAll('.snooze-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const reminderId = this.getAttribute('data-reminder-id');
+            snoozeReminder(reminderId);
+        });
+    });
+
+    // Edit buttons
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const reminderId = this.getAttribute('data-reminder-id');
+            editReminder(reminderId);
+        });
+    });
+
+    // Pause buttons
+    document.querySelectorAll('.pause-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const reminderId = this.getAttribute('data-reminder-id');
+            pauseReminder(reminderId);
+        });
+    });
+
+    // Resume buttons
+    document.querySelectorAll('.resume-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const reminderId = this.getAttribute('data-reminder-id');
+            resumeReminder(reminderId);
+        });
+    });
+
+    // Delete buttons
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const reminderId = this.getAttribute('data-reminder-id');
+            const medicineName = this.getAttribute('data-medicine-name');
+            deleteReminder(reminderId, medicineName);
+        });
+    });
+});
+
+// Close modals when clicking outside
+document.getElementById('reminderModal').addEventListener('click', function(e) {
+    if (e.target === this) closeReminderModal();
+});
+
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+});
+</script>
+{% endblock %}

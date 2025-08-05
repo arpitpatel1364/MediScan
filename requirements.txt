@@ -1,0 +1,41 @@
+# Django and core dependencies
+Django==4.2.7
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+
+# Image processing
+Pillow==10.0.1
+
+# HTTP requests
+requests==2.31.0
+
+# Environment variables
+python-decouple==3.8
+
+# Date and time utilities
+python-dateutil==2.8.2
+
+# JSON handling
+orjson==3.9.9
+
+# Data processing (compatible versions)
+pandas==2.1.4
+numpy==1.26.2
+
+# Validation
+validators==0.22.0
+
+# Security
+cryptography==41.0.7
+
+# Testing
+pytest==7.4.3
+pytest-django==4.7.0
+
+# Code quality
+black==23.11.0
+flake8==6.1.0
+
+# Production server
+gunicorn==21.2.0
+whitenoise==6.6.0  # Static file serving

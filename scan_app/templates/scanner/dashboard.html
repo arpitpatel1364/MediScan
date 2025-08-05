@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - MediScan Pro{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <div>
+            <h1 class="text-4xl font-display font-bold text-medical-primary mb-2 flex items-center">
+                <i class="fas fa-chart-line text-primary-500 mr-4"></i>
+                Dashboard
+            </h1>
+            <p class="text-gray-600">Welcome back! Here's your medicine management overview</p>
+        </div>
+        <div class="flex items-center space-x-3 mt-4 md:mt-0">
+            <button onclick="location.href='/scan/'" class="btn-primary">
+                <i class="fas fa-camera"></i>
+                <span>Scan Medicine</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid md:grid-cols-4 gap-4 mb-8">
+        <div class="stats-card">
+            <div class="stats-number">{{ total_scans|default:"0" }}</div>
+            <div class="stats-label">Total Scans</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-number">{{ total_reminders|default:"0" }}</div>
+            <div class="stats-label">Total Reminders</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-number">{{ active_reminders|default:"0" }}</div>
+            <div class="stats-label">Active Reminders</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-number">{{ recent_scans.count|default:"0" }}</div>
+            <div class="stats-label">Recent Activity</div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="grid md:grid-cols-2 gap-8">
+        <!-- Recent Scans -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="text-2xl font-display font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-history text-primary-500 mr-3"></i>
+                    Recent Scans
+                </h2>
+            </div>
+            {% if recent_scans %}
+                <div class="space-y-4">
+                    {% for scan in recent_scans %}
+                    <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                        <div class="bg-gradient-to-r from-primary-500 to-primary-600 p-3 rounded-xl text-white">
+                            <i class="fas fa-pills text-lg"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-800">{{ scan.medicine_name|default:"Unknown Medicine" }}</h4>
+                            <p class="text-sm text-gray-600">{{ scan.created_at|date:"M d, Y H:i" }}</p>
+                            <p class="text-sm text-gray-500">Confidence: {{ scan.confidence_percentage|default:"0" }}%</p>
+                        </div>
+                        <a href="{% url 'scanner:medicine_detail' scan.id %}" class="btn-secondary">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <div class="medical-icon bg-blue-100">
+                        <i class="fas fa-camera text-blue-500"></i>
+                    </div>
+                    <p class="text-gray-600 font-medium">No scans yet</p>
+                    <p class="text-sm text-gray-500 mt-1">Start by scanning your first medicine</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Reminders -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="text-2xl font-display font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-bell text-primary-500 mr-3"></i>
+                    Recent Reminders
+                </h2>
+            </div>
+            {% if recent_reminders %}
+                <div class="space-y-4">
+                    {% for reminder in recent_reminders %}
+                    <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                        <div class="bg-gradient-to-r from-green-500 to-green-600 p-3 rounded-xl text-white">
+                            <i class="fas fa-clock text-lg"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-800">{{ reminder.medicine_name }}</h4>
+                            <p class="text-sm text-gray-600">{{ reminder.dosage }}</p>
+                            <p class="text-sm text-gray-500">{{ reminder.frequency }}</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            {% if reminder.is_active %}
+                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+                                    Active
+                                </span>
+                            {% else %}
+                                <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded-full">
+                                    Paused
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <div class="medical-icon bg-green-100">
+                        <i class="fas fa-bell text-green-500"></i>
+                    </div>
+                    <p class="text-gray-600 font-medium">No reminders yet</p>
+                    <p class="text-sm text-gray-500 mt-1">Set up your first medication reminder</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card mt-8">
+        <div class="card-header">
+            <h2 class="text-2xl font-display font-semibold text-gray-800 flex items-center">
+                <i class="fas fa-bolt text-primary-500 mr-3"></i>
+                Quick Actions
+            </h2>
+        </div>
+        <div class="grid md:grid-cols-4 gap-4 p-6">
+            <a href="{% url 'scanner:scan' %}" class="quick-action-card">
+                <div class="medical-icon bg-blue-100">
+                    <i class="fas fa-camera text-blue-500"></i>
+                </div>
+                <h3 class="font-semibold text-gray-800">Scan Medicine</h3>
+                <p class="text-sm text-gray-600">Identify medicine with AI</p>
+            </a>
+            
+            <a href="{% url 'scanner:reminders' %}" class="quick-action-card">
+                <div class="medical-icon bg-green-100">
+                    <i class="fas fa-bell text-green-500"></i>
+                </div>
+                <h3 class="font-semibold text-gray-800">Manage Reminders</h3>
+                <p class="text-sm text-gray-600">Set medication schedules</p>
+            </a>
+            
+            <a href="{% url 'scanner:history' %}" class="quick-action-card">
+                <div class="medical-icon bg-purple-100">
+                    <i class="fas fa-history text-purple-500"></i>
+                </div>
+                <h3 class="font-semibold text-gray-800">View History</h3>
+                <p class="text-sm text-gray-600">Check past scans</p>
+            </a>
+            
+            <a href="{% url 'scanner:health_insights' %}" class="quick-action-card">
+                <div class="medical-icon bg-orange-100">
+                    <i class="fas fa-chart-bar text-orange-500"></i>
+                </div>
+                <h3 class="font-semibold text-gray-800">Health Insights</h3>
+                <p class="text-sm text-gray-600">Analytics & reports</p>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% block title %}Medicine Reports - MediScan Pro{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <div>
+            <h1 class="text-4xl font-display font-bold text-medical-primary mb-2 flex items-center">
+                <i class="fas fa-chart-bar text-primary-500 mr-4"></i>
+                Medicine Reports
+            </h1>
+            <p class="text-gray-600">Analytics and insights about your medication usage</p>
+        </div>
+        <div class="flex items-center space-x-3 mt-4 md:mt-0">
+            <button onclick="exportReport()" class="btn-secondary">
+                <i class="fas fa-download"></i>
+                <span>Export Report</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Overview Stats -->
+    <div class="grid md:grid-cols-4 gap-4 mb-8">
+        <div class="stats-card">
+            <div class="stats-number">{{ total_medicines|default:"0" }}</div>
+            <div class="stats-label">Total Medicines</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-number">{{ unique_medicines|default:"0" }}</div>
+            <div class="stats-label">Unique Medicines</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-number">{{ total_reminders|default:"0" }}</div>
+            <div class="stats-label">Total Reminders</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-number">{{ active_reminders|default:"0" }}</div>
+            <div class="stats-label">Active Reminders</div>
+        </div>
+    </div>
+
+    <!-- Medicine Categories -->
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="text-2xl font-display font-semibold text-gray-800 flex items-center">
+                <i class="fas fa-tags text-primary-500 mr-3"></i>
+                Medicine Categories
+            </h2>
+        </div>
+        <div class="p-6">
+            {% if medicine_categories %}
+                <div class="grid md:grid-cols-2 gap-6">
+                    {% for category, count in medicine_categories.items %}
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-gradient-to-r from-primary-500 to-primary-600 p-2 rounded-lg text-white">
+                                <i class="fas fa-pills"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">{{ category|title }}</h4>
+                                <p class="text-sm text-gray-600">{{ count }} medicines</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold text-primary-600">{{ count }}</div>
+                            <div class="text-sm text-gray-500">
+                                {{ count|floatformat:0 }}% of total
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <div class="medical-icon bg-gray-100">
+                        <i class="fas fa-chart-pie text-gray-400"></i>
+                    </div>
+                    <p class="text-gray-600 font-medium">No medicine data available</p>
+                    <p class="text-sm text-gray-500 mt-1">Start scanning medicines to see analytics</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Reminder Adherence -->
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="text-2xl font-display font-semibold text-gray-800 flex items-center">
+                <i class="fas fa-bell text-primary-500 mr-3"></i>
+                Reminder Adherence
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-green-600 mb-2">{{ active_reminders|default:"0" }}</div>
+                    <div class="text-sm text-gray-600">Active Reminders</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-blue-600 mb-2">{{ total_reminders|default:"0" }}</div>
+                    <div class="text-sm text-gray-600">Total Reminders</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-purple-600 mb-2">
+                        {% if total_reminders > 0 %}
+                            {{ active_reminders|default:0|floatformat:0 }}
+                        {% else %}
+                            0
+                        {% endif %}%
+                    </div>
+                    <div class="text-sm text-gray-600">Adherence Rate</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Trends -->
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="text-2xl font-display font-semibold text-gray-800 flex items-center">
+                <i class="fas fa-chart-line text-primary-500 mr-3"></i>
+                Monthly Trends
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="bg-gray-50 rounded-lg p-8 text-center">
+                <div class="medical-icon bg-blue-100 mx-auto mb-4">
+                    <i class="fas fa-chart-line text-blue-500"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Trend Analysis</h3>
+                <p class="text-gray-600">Monthly trend data will be displayed here</p>
+                <p class="text-sm text-gray-500 mt-2">Coming soon with more data</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="text-2xl font-display font-semibold text-gray-800 flex items-center">
+                <i class="fas fa-lightbulb text-primary-500 mr-3"></i>
+                Health Recommendations
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="space-y-4">
+                <div class="flex items-start space-x-4 p-4 bg-blue-50 rounded-lg">
+                    <div class="bg-blue-500 p-2 rounded-lg text-white">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-800">Regular Medication Review</h4>
+                        <p class="text-sm text-gray-600">Consider reviewing your medications with your healthcare provider every 6 months.</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start space-x-4 p-4 bg-green-50 rounded-lg">
+                    <div class="bg-green-500 p-2 rounded-lg text-white">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-800">Good Adherence</h4>
+                        <p class="text-sm text-gray-600">Keep up the good work with your medication schedule!</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start space-x-4 p-4 bg-yellow-50 rounded-lg">
+                    <div class="bg-yellow-500 p-2 rounded-lg text-white">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-800">Interaction Check</h4>
+                        <p class="text-sm text-gray-600">Consider checking for potential drug interactions when adding new medications.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function exportReport() {
+    // This would generate and download a PDF report
+    alert('Report export feature coming soon!');
+}
+</script>
+{% endblock %} 

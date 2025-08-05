@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+{% block title %}{{ medicine_name }} - Medicine Details{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <div class="inline-flex items-center space-x-3 bg-green-100 text-green-800 px-6 py-3 rounded-full mb-4">
+            <i class="fas fa-check-circle text-xl"></i>
+            <span class="font-semibold">Medicine Successfully Identified</span>
+        </div>
+        <h1 class="text-4xl font-display font-bold text-medical-primary mb-2">Medicine Analysis Complete</h1>
+        <p class="text-gray-600">Here's what we found about your scanned medicine</p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Main Medicine Card -->
+        <div class="lg:col-span-2">
+            <div class="card">
+                <div class="flex flex-col md:flex-row gap-6">
+                    <!-- Medicine Image -->
+                    <div class="md:w-1/3">
+                        <div class="relative">
+                            <img src="{{ image_url }}" alt="Medicine Strip" class="medicine-image w-full hover-lift">
+                            <div class="absolute -top-2 -right-2 bg-green-500 text-white p-2 rounded-full shadow-lg">
+                                <i class="fas fa-check text-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Medicine Info -->
+                    <div class="md:w-2/3">
+                        <div class="mb-6">
+                            <h2 class="text-3xl font-display font-bold text-gray-800 mb-2">{{ medicine_name }}</h2>
+                            <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                <span><i class="fas fa-calendar mr-1"></i>Scanned {{ scan_date|default:"today" }}</span>
+                                <span><i class="fas fa-shield-check mr-1"></i>Verified</span>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="flex flex-wrap gap-3 mb-6">
+                            <a href="/reminders?medicine_name={{ medicine_name }}&dosage={{ medicine_info.dosage }}" 
+                               class="btn-medical">
+                                <i class="fas fa-bell"></i>
+                                <span>Set Reminder</span>
+                            </a>
+                            <button onclick="shareResult()" class="btn-secondary">
+                                <i class="fas fa-share-alt"></i>
+                                <span>Share</span>
+                            </button>
+                            <button onclick="downloadInfo()" class="btn-secondary">
+                                <i class="fas fa-download"></i>
+                                <span>Download</span>
+                            </button>
+                        </div>
+
+                        <!-- Medicine Information Grid -->
+                        <div class="medicine-info-grid">
+                            <div class="medicine-info-card">
+                                <div class="medicine-info-icon bg-gradient-to-r from-blue-500 to-blue-600">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 mb-2">Uses</h4>
+                                <p class="text-gray-600 text-sm">{{ medicine_info.uses }}</p>
+                            </div>
+
+                            <div class="medicine-info-card">
+                                <div class="medicine-info-icon bg-gradient-to-r from-green-500 to-green-600">
+                                    <i class="fas fa-pills"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 mb-2">Dosage</h4>
+                                <p class="text-gray-600 text-sm">{{ medicine_info.dosage }}</p>
+                            </div>
+
+                            <div class="medicine-info-card">
+                                <div class="medicine-info-icon bg-gradient-to-r from-red-500 to-red-600">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 mb-2">Side Effects</h4>
+                                <p class="text-gray-600 text-sm">{{ medicine_info.side_effects }}</p>
+                            </div>
+
+                            <div class="medicine-info-card">
+                                <div class="medicine-info-icon bg-gradient-to-r from-purple-500 to-purple-600">
+                                    <i class="fas fa-tag"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 mb-2">MRP</h4>
+                                <p class="text-gray-600 text-sm font-semibold">{{ medicine_info.mrp }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alternatives Section -->
+            <div class="card mt-8">
+                <div class="card-header">
+                    <h3 class="text-2xl font-display font-semibold text-gray-800 flex items-center">
+                        <i class="fas fa-exchange-alt text-primary-500 mr-3"></i>
+                        Alternative Medicines
+                    </h3>
+                </div>
+                
+                {% if medicine_info.alternatives %}
+                    <div class="grid md:grid-cols-2 gap-4">
+                        {% for alt in medicine_info.alternatives %}
+                        <div class="bg-gradient-to-r from-primary-50 to-white p-4 rounded-xl border border-primary-100 hover:shadow-md transition-all duration-300">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-primary-100 p-2 rounded-lg">
+                                    <i class="fas fa-capsules text-primary-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">{{ alt.name|default:alt }}</h4>
+                                    {% if alt.price %}
+                                        <p class="text-sm text-gray-600">₹{{ alt.price }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <div class="medical-icon bg-gray-100">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <p class="text-gray-500 font-medium">No alternatives found for this medicine</p>
+                        <p class="text-sm text-gray-400 mt-2">Please consult with your healthcare provider for alternative options</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Quick Stats -->
+            <div class="card">
+                <h3 class="text-lg font-display font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-chart-bar text-primary-500 mr-2"></i>
+                    Quick Stats
+                </h3>
+                <div class="space-y-4">
+                    <div class="stats-card">
+                        <div class="stats-number">{{ confidence|default:"95" }}%</div>
+                        <div class="stats-label">Identification Confidence</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-number">{{ scan_time|default:"2.3" }}s</div>
+                        <div class="stats-label">Analysis Time</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety Information -->
+            <div class="card">
+                <h3 class="text-lg font-display font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-shield-alt text-red-500 mr-2"></i>
+                    Safety Information
+                </h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-exclamation-circle text-orange-500 mt-1"></i>
+                        <p class="text-gray-600">Always consult a healthcare professional before taking any medication</p>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-clock text-blue-500 mt-1"></i>
+                        <p class="text-gray-600">Check expiry date before consumption</p>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-user-md text-green-500 mt-1"></i>
+                        <p class="text-gray-600">Follow prescribed dosage instructions</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card">
+                <h3 class="text-lg font-display font-semibold text-gray-800 mb-4">Quick Actions</h3>
+                <div class="space-y-3">
+                    {% comment %} <a href="{% url 'upload_image' %}" class="btn-primary w-full justify-center"> {% endcomment %}
+                        <i class="fas fa-camera"></i>
+                        <span>Scan Another</span>
+                    </a>
+                    <a href="../history" class="btn-secondary w-full justify-center">
+                        <i class="fas fa-history"></i>
+                        <span>View History</span>
+                    </a>
+                    <button onclick="addToFavorites()" class="btn-secondary w-full justify-center">
+                        <i class="fas fa-heart"></i>
+                        <span>Add to Favorites</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Emergency Contacts -->
+            <div class="card bg-gradient-to-br from-red-50 to-orange-50 border-red-200">
+                <h3 class="text-lg font-display font-semibold text-red-800 mb-4 flex items-center">
+                    <i class="fas fa-phone-alt text-red-500 mr-2"></i>
+                    Emergency
+                </h3>
+                <div class="space-y-2 text-sm">
+                    <p class="text-red-700 font-medium">In case of overdose or adverse reaction:</p>
+                    <div class="bg-white p-3 rounded-lg border border-red-200">
+                        <p class="text-red-800 font-semibold">📞 Emergency: 108</p>
+                        <p class="text-red-700">🏥 Poison Control: 1066</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function shareResult() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'Medicine Information - {{ medicine_name }}',
+            text: 'Check out this medicine information from MediScan Pro',
+            url: window.location.href
+        });
+    } else {
+        // Fallback for browsers that don't support Web Share API
+        navigator.clipboard.writeText(window.location.href);
+        alert('Link copied to clipboard!');
+    }
+}
+
+function downloadInfo() {
+    // Create a simple text file with medicine information
+    const info = `Medicine Information - {{ medicine_name }}
+    
+Uses: {{ medicine_info.uses }}
+Dosage: {{ medicine_info.dosage }}
+Side Effects: {{ medicine_info.side_effects }}
+MRP: {{ medicine_info.mrp }}
+
+Generated by MediScan Pro
+Date: ${new Date().toLocaleDateString()}`;
+
+    const blob = new Blob([info], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '{{ medicine_name }}_info.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function addToFavorites() {
+    // This would typically make an AJAX call to save to favorites
+    alert('Added to favorites! (Feature would be implemented with backend)');
+}
+</script>
+{% endblock %}

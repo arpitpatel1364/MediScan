@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block title %}Scan Medicine - MediScan Pro{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Hero Section -->
+    <div class="text-center mb-12">
+        <div class="medical-icon">
+            <i class="fas fa-camera-retro"></i>
+        </div>
+        <h1 class="text-4xl md:text-5xl font-display font-bold text-medical-primary mb-4">
+            Scan Your Medicine
+        </h1>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            Upload an image or use your camera to instantly identify medicines, get detailed information, and manage your health effectively.
+        </p>
+    </div>
+
+    <!-- Main Scan Card -->
+    <div class="card mb-8">
+        <form method="post" enctype="multipart/form-data" class="space-y-6" id="scanForm">
+            {% csrf_token %}
+            
+            <!-- Upload Area -->
+            <div class="scan-area" id="scanArea">
+                <div class="file-input-wrapper">
+                    <input type="file" id="image" name="image" accept="image/*" capture="camera" class="file-input" required>
+                    <div class="file-input-button pulse-scan" id="scanButton">
+                        <i class="fas fa-camera text-2xl"></i>
+                        <div>
+                            <div class="font-bold">Scan Medicine Strip</div>
+                            <div class="text-sm opacity-80">Click to capture or upload</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 text-sm text-gray-500">
+                    <p><i class="fas fa-info-circle text-primary-500 mr-2"></i>Supported formats: JPG, PNG, WEBP</p>
+                    <p><i class="fas fa-shield-alt text-primary-500 mr-2"></i>Your images are processed securely</p>
+                </div>
+            </div>
+
+            <!-- Image Preview -->
+            <div id="imagePreview" class="hidden">
+                <div class="text-center">
+                    <img id="previewImg" class="medicine-image mx-auto max-w-xs" alt="Preview">
+                    <p class="text-sm text-gray-600 mt-3">Image ready for scanning</p>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="text-center">
+                <button type="submit" class="btn-primary text-lg px-8 py-4" id="submitBtn" disabled>
+                    <i class="fas fa-search"></i>
+                    <span>Analyze Medicine</span>
+                    <div class="loading-spinner hidden" id="loadingSpinner"></div>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="grid md:grid-cols-3 gap-6 mb-12">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h3 class="font-display font-semibold text-lg mb-2">AI-Powered Recognition</h3>
+            <p class="text-gray-600 text-sm">Advanced machine learning algorithms for accurate medicine identification.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-pills"></i>
+            </div>
+            <h3 class="font-display font-semibold text-lg mb-2">Comprehensive Database</h3>
+            <p class="text-gray-600 text-sm">Access detailed information about thousands of medicines and their alternatives.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <h3 class="font-display font-semibold text-lg mb-2">Smart Reminders</h3>
+            <p class="text-gray-600 text-sm">Never miss a dose with intelligent medication reminders and schedules.</p>
+        </div>
+    </div>
+
+    <!-- Recent Scans -->
+    {% if recent_scans %}
+    <div class="card">
+        <div class="card-header">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-display font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-history text-primary-500 mr-3"></i>
+                    Recent Scans
+                </h2>
+                <a href="../history" class="btn-secondary">
+                    <span>View All</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for scan in recent_scans %}
+            <div class="medicine-card">
+                <img src="{{ scan.image.url }}" alt="Medicine" class="medicine-image w-full h-32 object-cover mb-3">
+                <h4 class="font-semibold text-gray-800 mb-1">{{ scan.medicine_name }}</h4>
+                <p class="text-sm text-gray-500">
+                    <i class="fas fa-clock mr-1"></i>
+                    {{ scan.created_at|timesince }} ago
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- How It Works -->
+    <div class="mt-16">
+        <h2 class="text-3xl font-display font-bold text-center text-gray-800 mb-12">How It Works</h2>
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="text-center">
+                <div class="bg-gradient-to-br from-primary-100 to-primary-200 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl font-bold text-primary-600">1</span>
+                </div>
+                <h3 class="font-display font-semibold text-lg mb-2">Scan or Upload</h3>
+                <p class="text-gray-600">Take a photo of your medicine strip or upload an existing image from your device.</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="bg-gradient-to-br from-medical-blue/20 to-blue-200 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl font-bold text-medical-blue">2</span>
+                </div>
+                <h3 class="font-display font-semibold text-lg mb-2">AI Analysis</h3>
+                <p class="text-gray-600">Our advanced AI analyzes the image and identifies the medicine with high accuracy.</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="bg-gradient-to-br from-green-100 to-green-200 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl font-bold text-green-600">3</span>
+                </div>
+                <h3 class="font-display font-semibold text-lg mb-2">Get Information</h3>
+                <p class="text-gray-600">Receive detailed information about uses, dosage, side effects, and alternatives.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('image');
+    const previewDiv = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    const submitBtn = document.getElementById('submitBtn');
+    const scanForm = document.getElementById('scanForm');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewDiv.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    scanForm.addEventListener('submit', function(e) {
+        submitBtn.disabled = true;
+        submitBtn.querySelector('span').textContent = 'Analyzing...';
+        loadingSpinner.classList.remove('hidden');
+    });
+});
+</script>
+{% endblock %}

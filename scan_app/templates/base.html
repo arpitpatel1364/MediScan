@@ -1,0 +1,198 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MediScan Pro - Smart Medicine Scanner{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <link rel="icon" href="{% static 'images/icon-192.png' %}">
+    <meta name="theme-color" content="#059669">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            300: '#6ee7b7',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                        medical: {
+                            blue: '#2563eb',
+                            light: '#eff6ff',
+                            dark: '#1e3a8a'
+                        }
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                        'display': ['Poppins', 'system-ui', 'sans-serif']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-primary-50 via-white to-medical-light min-h-screen font-sans">
+    <!-- Navigation -->
+    <nav class="bg-white/95 backdrop-blur-md shadow-xl border-b border-primary-100 sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <a href="../dashboard" class="flex items-center space-x-3 group">
+                    <div class="bg-gradient-to-r from-primary-600 to-medical-blue p-2 rounded-xl group-hover:scale-105 transition-transform duration-300">
+                        <i class="fas fa-stethoscope text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-display font-bold bg-gradient-to-r from-primary-600 to-medical-blue bg-clip-text text-transparent">
+                            MediScan Pro
+                        </h1>
+                        <p class="text-xs text-gray-500 font-medium">Smart Medicine Scanner</p>
+                    </div>
+                </a>
+                
+                <div class="flex items-center space-x-6">
+                    {% if user.is_authenticated %}
+                        <div class="hidden md:flex items-center space-x-4">
+                            <a href="/history" class="nav-link">
+                                <i class="fas fa-history"></i>
+                                <span>History</span>
+                            </a>
+                            <a href="/reminders" class="nav-link">
+                                <i class="fas fa-bell"></i>
+                                <span>Reminders</span>
+                            </a>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-primary-100 p-2 rounded-full">
+                                <i class="fas fa-user-md text-primary-600"></i>
+                            </div>
+                            <a href="../profile" class="hidden md:block text-gray-800 font-medium">
+                                {{ user.username|title }}
+                            <div class="hidden md:block">
+                                <p class="text-sm font-medium text-gray-700">Welcome back</p>
+                                <p class="text-xs text-gray-500">{{ user.username|title }}</p>
+                            </div>
+                            </a>
+                            <a href="{% url 'logout' %}" class="btn-secondary">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span class="hidden md:inline">Logout</span>
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="flex items-center space-x-3">
+                            <a href="{% url 'login' %}" class="btn-secondary">
+                                <i class="fas fa-sign-in-alt"></i>
+                                <span>Login</span>
+                            </a>
+                            <a href="/registration/signup.html" class="btn-primary">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Sign Up</span>
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} animate-fade-in">
+                        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-primary-100 mt-16">
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="bg-gradient-to-r from-primary-600 to-medical-blue p-2 rounded-lg">
+                            <i class="fas fa-stethoscope text-white"></i>
+                        </div>
+                        <h3 class="font-display font-bold text-gray-800">MediScan Pro</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm">Your trusted companion for medicine identification and health management.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-3">Features</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li><i class="fas fa-camera text-primary-500 mr-2"></i>Smart Image Recognition</li>
+                        <li><i class="fas fa-pills text-primary-500 mr-2"></i>Medicine Information</li>
+                        <li><i class="fas fa-bell text-primary-500 mr-2"></i>Dosage Reminders</li>
+                        <li><i class="fas fa-history text-primary-500 mr-2"></i>Scan History</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-3">Contact</h4>
+                    <div class="space-y-2 text-sm text-gray-600">
+                        <p><i class="fas fa-envelope text-primary-500 mr-2"></i>bhojaniarpit1432@gmail.com</p>
+                        <p><i class="fas fa-phone text-primary-500 mr-2"></i>+7383181094</p>
+                        <p><i class="fas fa-map-marker-alt text-primary-500 mr-2"></i>Healthcare District, Medical City</p>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 mt-8 pt-6 text-center">
+                <p class="text-gray-500 text-sm">&copy; 2025 MediScan Pro. All rights reserved. | Empowering healthcare through technology.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mobile Bottom Navigation -->
+    {% if user.is_authenticated %}
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-primary-100 z-40">
+        <div class="flex items-center justify-around py-2">
+            {% comment %} <a href="{% url 'upload_image' %}" class="mobile-nav-item"> {% endcomment %}
+                <i class="fas fa-camera"></i>
+                <span>Scan</span>
+            </a>
+            <a href="/scanner/history" class="mobile-nav-item">
+                <i class="fas fa-history"></i>
+                <span>History</span>
+            </a>
+            <a href="/scanner/reminders" class="mobile-nav-item">
+                <i class="fas fa-bell"></i>
+                <span>Reminders</span>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <script src="{% static 'js/script.js' %}"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js')
+                .then(reg => console.log('Service Worker Registered'))
+                .catch(err => console.log('Service Worker Not Registered', err));
+        }
+    </script>
+</body>
+</html>

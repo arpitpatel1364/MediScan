@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Favorite Medicines - MediScan Pro{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <div>
+            <h1 class="text-4xl font-display font-bold text-medical-primary mb-2 flex items-center">
+                <i class="fas fa-heart text-primary-500 mr-4"></i>
+                Favorite Medicines
+            </h1>
+            <p class="text-gray-600">Your saved and frequently used medicines</p>
+        </div>
+        <div class="flex items-center space-x-3 mt-4 md:mt-0">
+            <button onclick="location.href='/scan/'" class="btn-primary">
+                <i class="fas fa-plus"></i>
+                <span>Add New</span>
+            </button>
+        </div>
+    </div>
+
+    {% if favorite_scans %}
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for scan in favorite_scans %}
+            <div class="card hover:shadow-lg transition-shadow">
+                <div class="relative">
+                    {% if scan.image %}
+                        <img src="{{ scan.image.url }}" alt="{{ scan.medicine_name }}" class="w-full h-48 object-cover rounded-t-lg">
+                    {% else %}
+                        <div class="w-full h-48 bg-gray-200 rounded-t-lg flex items-center justify-center">
+                            <i class="fas fa-pills text-4xl text-gray-400"></i>
+                        </div>
+                    {% endif %}
+                    <div class="absolute top-2 right-2">
+                        <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+                            <i class="fas fa-heart mr-1"></i>
+                            Favorite
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ scan.medicine_name|default:"Unknown Medicine" }}</h3>
+                    <p class="text-sm text-gray-600 mb-3">{{ scan.created_at|date:"M d, Y" }}</p>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-sm text-gray-500">
+                            <i class="fas fa-chart-line mr-1"></i>
+                            Confidence: {{ scan.confidence_percentage|default:"0" }}%
+                        </span>
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <a href="{% url 'scanner:medicine_detail' scan.id %}" class="btn-primary flex-1 justify-center">
+                            <i class="fas fa-eye"></i>
+                            <span>View Details</span>
+                        </a>
+                        <button onclick="removeFavorite({{ scan.id }})" class="btn-danger">
+                            <i class="fas fa-heart-broken"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <div class="medical-icon bg-red-100 mb-6">
+                <i class="fas fa-heart text-red-400 text-4xl"></i>
+            </div>
+            <h3 class="text-2xl font-display font-semibold text-gray-800 mb-4">No Favorite Medicines Yet</h3>
+            <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                Start scanning medicines and mark them as favorites to keep them easily accessible.
+            </p>
+            <button onclick="location.href='/scan/'" class="btn-primary inline-flex">
+                <i class="fas fa-camera"></i>
+                <span>Scan Your First Medicine</span>
+            </button>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function removeFavorite(scanId) {
+    if (confirm('Remove this medicine from favorites?')) {
+        fetch(`/medicine/${scanId}/favorite/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        }).then(() => {
+            location.reload();
+        });
+    }
+}
+</script>
+{% endblock %} 

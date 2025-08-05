@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Health Insights - MediScan Pro{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="text-3xl font-display font-bold text-gray-800 flex items-center">
+                <i class="fas fa-brain text-primary-500 mr-3"></i>
+                Health Insights
+            </h1>
+        </div>
+        
+        <div class="text-center py-12">
+            <div class="medical-icon bg-blue-100 mb-6">
+                <i class="fas fa-chart-line text-blue-500 text-4xl"></i>
+            </div>
+            <h3 class="text-2xl font-display font-semibold text-gray-800 mb-4">AI Health Analytics</h3>
+            <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                Personalized health insights and analytics will be available soon.
+            </p>
+            <a href="{% url 'dashboard' %}" class="btn-primary inline-flex">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back to Dashboard</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 
