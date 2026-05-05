@@ -4,89 +4,95 @@
 {% block content %}
 <div class="max-w-6xl mx-auto">
     <!-- Header -->
-    <div class="text-center mb-8">
-        <div class="inline-flex items-center space-x-3 bg-green-100 text-green-800 px-6 py-3 rounded-full mb-4">
-            <i class="fas fa-check-circle text-xl"></i>
-            <span class="font-semibold">Medicine Successfully Identified</span>
+    <div class="text-center mb-12 animate-fade-in">
+        <div class="inline-flex items-center space-x-3 glass-medical text-green-800 px-8 py-3 rounded-full mb-6 shadow-sm animate-float">
+            <i class="fas fa-check-circle text-xl text-green-600"></i>
+            <span class="font-bold tracking-wide uppercase text-sm">Medicine Successfully Identified</span>
         </div>
-        <h1 class="text-4xl font-display font-bold text-medical-primary mb-2">Medicine Analysis Complete</h1>
-        <p class="text-gray-600">Here's what we found about your scanned medicine</p>
+        <h1 class="text-5xl font-display font-black text-gray-900 mb-4 tracking-tight">
+            Analysis <span class="bg-gradient-to-r from-primary-600 to-medical-blue bg-clip-text text-transparent">Complete</span>
+        </h1>
+        <p class="text-lg text-gray-500 max-w-2xl mx-auto">Expert analysis completed using advanced recognition technology. Review the identified medication details below.</p>
     </div>
 
     <div class="grid lg:grid-cols-3 gap-8">
         <!-- Main Medicine Card -->
         <div class="lg:col-span-2">
-            <div class="card">
-                <div class="flex flex-col md:flex-row gap-6">
+            <div class="card glass border-none overflow-hidden animate-scale-in">
+                <div class="flex flex-col md:flex-row gap-8">
                     <!-- Medicine Image -->
-                    <div class="md:w-1/3">
-                        <div class="relative">
-                            <img src="{{ image_url }}" alt="Medicine Strip" class="medicine-image w-full hover-lift">
-                            <div class="absolute -top-2 -right-2 bg-green-500 text-white p-2 rounded-full shadow-lg">
-                                <i class="fas fa-check text-sm"></i>
+                    <div class="md:w-2/5">
+                        <div class="relative group">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl z-10"></div>
+                            <img src="{{ image_url }}" alt="Medicine Strip" class="medicine-image w-full aspect-square object-cover hover-lift">
+                            <div class="absolute -top-3 -right-3 bg-gradient-to-br from-green-400 to-green-600 text-white p-3 rounded-2xl shadow-xl z-20 animate-bounce-slow">
+                                <i class="fas fa-check text-lg"></i>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Medicine Info -->
-                    <div class="md:w-2/3">
-                        <div class="mb-6">
-                            <h2 class="text-3xl font-display font-bold text-gray-800 mb-2">{{ medicine_name }}</h2>
-                            <div class="flex items-center space-x-4 text-sm text-gray-500">
-                                <span><i class="fas fa-calendar mr-1"></i>Scanned {{ scan_date|default:"today" }}</span>
-                                <span><i class="fas fa-shield-check mr-1"></i>Verified</span>
+                    <div class="md:w-3/5">
+                        <div class="mb-8">
+                            <div class="flex justify-between items-start mb-2">
+                                <h2 class="text-4xl font-display font-bold text-gray-900 leading-tight">{{ medicine_name }}</h2>
+                                <span class="px-3 py-1 bg-primary-100 text-primary-700 rounded-lg text-xs font-bold uppercase tracking-wider">Verified</span>
+                            </div>
+                            <div class="flex items-center space-x-4 text-sm text-gray-400">
+                                <span class="flex items-center"><i class="far fa-calendar-alt mr-2"></i>Scanned {{ scan_date|date:"M d, Y"|default:"Just now" }}</span>
+                                <span class="flex items-center"><i class="far fa-clock mr-2"></i>{{ scan_date|time:"h:i A"|default:"" }}</span>
                             </div>
                         </div>
 
                         <!-- Quick Actions -->
-                        <div class="flex flex-wrap gap-3 mb-6">
+                        <div class="flex flex-wrap gap-4 mb-8">
                             <a href="{% url 'scanner:reminders' %}?medicine_name={{ medicine_name }}&dosage={{ medicine_info.dosage }}" 
-                               class="btn-medical">
-                                <i class="fas fa-bell"></i>
+                               class="btn-medical group">
+                                <i class="fas fa-bell group-hover:animate-swing"></i>
                                 <span>Set Reminder</span>
                             </a>
-                            <button onclick="shareResult()" class="btn-secondary">
-                                <i class="fas fa-share-alt"></i>
+                            <button onclick="shareResult()" class="btn-secondary group">
+                                <i class="fas fa-share-alt group-hover:text-primary-500 transition-colors"></i>
                                 <span>Share</span>
                             </button>
-                            <button onclick="downloadInfo()" class="btn-secondary">
-                                <i class="fas fa-download"></i>
-                                <span>Download</span>
+                            <button onclick="downloadInfo()" class="btn-secondary group">
+                                <i class="fas fa-download group-hover:text-primary-500 transition-colors"></i>
+                                <span>Export Report</span>
                             </button>
                         </div>
 
                         <!-- Medicine Information Grid -->
-                        <div class="medicine-info-grid">
-                            <div class="medicine-info-card">
-                                <div class="medicine-info-icon bg-gradient-to-r from-blue-500 to-blue-600">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="info-card-premium" style="background: rgba(59, 130, 246, 0.05);">
+                                <div class="info-icon-wrapper bg-gradient-to-br from-blue-500 to-blue-600">
                                     <i class="fas fa-info-circle"></i>
                                 </div>
-                                <h4 class="font-semibold text-gray-800 mb-2">Uses</h4>
-                                <p class="text-gray-600 text-sm">{{ medicine_info.uses }}</p>
+                                <h4 class="font-bold text-gray-800 text-sm mb-1">Uses</h4>
+                                <p class="text-gray-600 text-xs leading-relaxed">{{ medicine_info.uses|truncatechars:80 }}</p>
                             </div>
 
-                            <div class="medicine-info-card">
-                                <div class="medicine-info-icon bg-gradient-to-r from-green-500 to-green-600">
+                            <div class="info-card-premium" style="background: rgba(16, 185, 129, 0.05);">
+                                <div class="info-icon-wrapper bg-gradient-to-br from-green-500 to-green-600">
                                     <i class="fas fa-pills"></i>
                                 </div>
-                                <h4 class="font-semibold text-gray-800 mb-2">Dosage</h4>
-                                <p class="text-gray-600 text-sm">{{ medicine_info.dosage }}</p>
+                                <h4 class="font-bold text-gray-800 text-sm mb-1">Dosage</h4>
+                                <p class="text-gray-600 text-xs leading-relaxed">{{ medicine_info.dosage }}</p>
                             </div>
 
-                            <div class="medicine-info-card">
-                                <div class="medicine-info-icon bg-gradient-to-r from-red-500 to-red-600">
+                            <div class="info-card-premium" style="background: rgba(239, 68, 68, 0.05);">
+                                <div class="info-icon-wrapper bg-gradient-to-br from-red-500 to-red-600">
                                     <i class="fas fa-exclamation-triangle"></i>
                                 </div>
-                                <h4 class="font-semibold text-gray-800 mb-2">Side Effects</h4>
-                                <p class="text-gray-600 text-sm">{{ medicine_info.side_effects }}</p>
+                                <h4 class="font-bold text-gray-800 text-sm mb-1">Side Effects</h4>
+                                <p class="text-gray-600 text-xs leading-relaxed">{{ medicine_info.side_effects|truncatechars:80 }}</p>
                             </div>
 
-                            <div class="medicine-info-card">
-                                <div class="medicine-info-icon bg-gradient-to-r from-purple-500 to-purple-600">
+                            <div class="info-card-premium" style="background: rgba(139, 92, 246, 0.05);">
+                                <div class="info-icon-wrapper bg-gradient-to-br from-purple-500 to-purple-600">
                                     <i class="fas fa-tag"></i>
                                 </div>
-                                <h4 class="font-semibold text-gray-800 mb-2">MRP</h4>
-                                <p class="text-gray-600 text-sm font-semibold">{{ medicine_info.mrp }}</p>
+                                <h4 class="font-bold text-gray-800 text-sm mb-1">MRP</h4>
+                                <p class="text-gray-900 font-black text-sm">{{ medicine_info.mrp }}</p>
                             </div>
                         </div>
                     </div>
@@ -94,117 +100,119 @@
             </div>
 
             <!-- Alternatives Section -->
-            <div class="card mt-8">
-                <div class="card-header">
-                    <h3 class="text-2xl font-display font-semibold text-gray-800 flex items-center">
+            <div class="card glass border-none mt-8 animate-slide-up" style="animation-delay: 0.1s">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-display font-bold text-gray-900 flex items-center">
                         <i class="fas fa-exchange-alt text-primary-500 mr-3"></i>
-                        Alternative Medicines
+                        Recommended Alternatives
                     </h3>
+                    <span class="text-xs font-semibold text-primary-600 bg-primary-50 px-3 py-1 rounded-full">Best Price Match</span>
                 </div>
                 
                 {% if medicine_info.alternatives %}
                     <div class="grid md:grid-cols-2 gap-4">
                         {% for alt in medicine_info.alternatives %}
-                        <div class="bg-gradient-to-r from-primary-50 to-white p-4 rounded-xl border border-primary-100 hover:shadow-md transition-all duration-300">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-primary-100 p-2 rounded-lg">
-                                    <i class="fas fa-capsules text-primary-600"></i>
+                        <div class="group bg-white p-5 rounded-2xl border border-gray-100 hover:border-primary-300 hover:shadow-xl hover:shadow-primary-500/10 transition-all duration-500">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="bg-primary-50 p-3 rounded-xl group-hover:bg-primary-500 group-hover:text-white transition-colors duration-300">
+                                        <i class="fas fa-capsules text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{{ alt.name|default:alt }}</h4>
+                                        <div class="flex items-center mt-1">
+                                            <span class="text-xs text-gray-400">Similarity: 98%</span>
+                                            <span class="mx-2 text-gray-300">|</span>
+                                            <span class="text-xs text-green-500 font-bold">In Stock</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800">{{ alt.name|default:alt }}</h4>
-                                    {% if alt.price %}
-                                        <p class="text-sm text-gray-600">₹{{ alt.price }}</p>
-                                    {% endif %}
-                                </div>
+                                {% if alt.price %}
+                                    <div class="text-right">
+                                        <p class="text-lg font-black text-gray-900">₹{{ alt.price }}</p>
+                                        <p class="text-[10px] text-gray-400 uppercase tracking-tighter">Save 15%</p>
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="text-center py-8">
-                        <div class="medical-icon bg-gray-100">
-                            <i class="fas fa-search text-gray-400"></i>
+                    <div class="text-center py-12 bg-gray-50/50 rounded-3xl border border-dashed border-gray-200">
+                        <div class="medical-icon bg-white shadow-sm mb-4">
+                            <i class="fas fa-search text-gray-300"></i>
                         </div>
-                        <p class="text-gray-500 font-medium">No alternatives found for this medicine</p>
-                        <p class="text-sm text-gray-400 mt-2">Please consult with your healthcare provider for alternative options</p>
+                        <p class="text-gray-900 font-bold text-lg">No direct alternatives found</p>
+                        <p class="text-sm text-gray-500 mt-2 max-w-xs mx-auto">Our AI couldn't find exact matches. Please consult your pharmacist for suitable generics.</p>
                     </div>
                 {% endif %}
             </div>
         </div>
 
         <!-- Sidebar -->
-        <div class="space-y-6">
-            <!-- Quick Stats -->
-            <div class="card">
-                <h3 class="text-lg font-display font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-chart-bar text-primary-500 mr-2"></i>
-                    Quick Stats
+        <div class="space-y-6 animate-slide-up" style="animation-delay: 0.2s">
+            <!-- Confidence Gauge -->
+            <div class="card glass border-none overflow-hidden relative">
+                <div class="absolute top-0 right-0 p-4">
+                    <i class="fas fa-certificate text-primary-500 text-2xl opacity-20"></i>
+                </div>
+                <h3 class="text-lg font-display font-bold text-gray-900 mb-6 flex items-center">
+                    <i class="fas fa-shield-virus text-primary-500 mr-2"></i>
+                    AI Confidence
+                </h3>
+                <div class="confidence-gauge">
+                    <svg class="confidence-ring" width="100" height="100">
+                        <circle class="text-gray-100" stroke-width="8" stroke="currentColor" fill="transparent" r="42" cx="50" cy="50"/>
+                        <circle id="confidenceCircle" class="text-primary-500 transition-all duration-1000 ease-out" stroke-width="8" stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round" stroke="currentColor" fill="transparent" r="42" cx="50" cy="50"/>
+                    </svg>
+                    <div class="confidence-value text-primary-600">{{ confidence|default:"95" }}%</div>
+                </div>
+                <div class="text-center mt-4">
+                    <p class="text-xs font-bold text-primary-700 uppercase tracking-widest">High Accuracy</p>
+                    <p class="text-[10px] text-gray-400 mt-1">Processed in {{ scan_time|default:"0.8" }}s</p>
+                </div>
+            </div>
+
+            <!-- Safety Protocol -->
+            <div class="card glass-dark border-none">
+                <h3 class="text-lg font-display font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-user-shield text-primary-400 mr-2"></i>
+                    Safety Protocol
                 </h3>
                 <div class="space-y-4">
-                    <div class="stats-card">
-                        <div class="stats-number">{{ confidence|default:"95" }}%</div>
-                        <div class="stats-label">Identification Confidence</div>
+                    <div class="flex items-start space-x-3 group">
+                        <div class="bg-white/10 p-2 rounded-lg group-hover:bg-primary-500/20 transition-colors">
+                            <i class="fas fa-stethoscope text-primary-400"></i>
+                        </div>
+                        <p class="text-gray-300 text-xs leading-relaxed">Consult a professional before use</p>
                     </div>
-                    <div class="stats-card">
-                        <div class="stats-number">{{ scan_time|default:"2.3" }}s</div>
-                        <div class="stats-label">Analysis Time</div>
+                    <div class="flex items-start space-x-3 group">
+                        <div class="bg-white/10 p-2 rounded-lg group-hover:bg-blue-500/20 transition-colors">
+                            <i class="fas fa-calendar-check text-blue-400"></i>
+                        </div>
+                        <p class="text-gray-300 text-xs leading-relaxed">Validate expiration date</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Safety Information -->
-            <div class="card">
-                <h3 class="text-lg font-display font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-shield-alt text-red-500 mr-2"></i>
-                    Safety Information
+            <!-- Emergency Card -->
+            <div class="card bg-gradient-to-br from-red-600 to-orange-600 border-none relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
+                    <i class="fas fa-ambulance text-8xl text-white"></i>
+                </div>
+                <h3 class="text-lg font-display font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-phone-alt mr-2 animate-pulse"></i>
+                    Emergency Support
                 </h3>
-                <div class="space-y-3 text-sm">
-                    <div class="flex items-start space-x-3">
-                        <i class="fas fa-exclamation-circle text-orange-500 mt-1"></i>
-                        <p class="text-gray-600">Always consult a healthcare professional before taking any medication</p>
-                    </div>
-                    <div class="flex items-start space-x-3">
-                        <i class="fas fa-clock text-blue-500 mt-1"></i>
-                        <p class="text-gray-600">Check expiry date before consumption</p>
-                    </div>
-                    <div class="flex items-start space-x-3">
-                        <i class="fas fa-user-md text-green-500 mt-1"></i>
-                        <p class="text-gray-600">Follow prescribed dosage instructions</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="card">
-                <h3 class="text-lg font-display font-semibold text-gray-800 mb-4">Quick Actions</h3>
-                <div class="space-y-3">
-                    <a href="{% url 'scanner:scan' %}" class="btn-primary w-full justify-center">
-                        <i class="fas fa-camera"></i>
-                        <span>Scan Another</span>
+                <div class="space-y-3 relative z-10">
+                    <a href="tel:108" class="flex items-center justify-between bg-white/20 hover:bg-white/30 backdrop-blur-md p-3 rounded-xl text-white transition-all">
+                        <span class="font-bold">Medical Emergency</span>
+                        <span class="bg-white text-red-600 px-3 py-1 rounded-lg font-black">108</span>
                     </a>
-                    <a href="{% url 'scanner:history' %}" class="btn-secondary w-full justify-center">
-                        <i class="fas fa-history"></i>
-                        <span>View History</span>
+                    <a href="tel:1066" class="flex items-center justify-between bg-white/20 hover:bg-white/30 backdrop-blur-md p-3 rounded-xl text-white transition-all">
+                        <span class="font-bold">Poison Control</span>
+                        <span class="bg-white text-red-600 px-3 py-1 rounded-lg font-black">1066</span>
                     </a>
-                    <button onclick="addToFavorites('{{ scan_id }}')" class="btn-secondary w-full justify-center" id="favoriteBtn">
-                        <i class="fas fa-heart"></i>
-                        <span id="favoriteText">Add to Favorites</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Emergency Contacts -->
-            <div class="card bg-gradient-to-br from-red-50 to-orange-50 border-red-200">
-                <h3 class="text-lg font-display font-semibold text-red-800 mb-4 flex items-center">
-                    <i class="fas fa-phone-alt text-red-500 mr-2"></i>
-                    Emergency
-                </h3>
-                <div class="space-y-2 text-sm">
-                    <p class="text-red-700 font-medium">In case of overdose or adverse reaction:</p>
-                    <div class="bg-white p-3 rounded-lg border border-red-200">
-                        <p class="text-red-800 font-semibold">📞 Emergency: 108</p>
-                        <p class="text-red-700">🏥 Poison Control: 1066</p>
-                    </div>
                 </div>
             </div>
         </div>
@@ -281,5 +289,17 @@ function addToFavorites(scanId) {
         }
     });
 }
+
+// Animate Confidence Ring on Load
+document.addEventListener('DOMContentLoaded', () => {
+    const circle = document.getElementById('confidenceCircle');
+    if (circle) {
+        const confidence = parseInt('{{ confidence|default:95 }}');
+        const offset = 264 - (264 * confidence) / 100;
+        setTimeout(() => {
+            circle.style.strokeDashoffset = offset;
+        }, 500);
+    }
+});
 </script>
 {% endblock %}

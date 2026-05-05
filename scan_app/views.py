@@ -158,20 +158,21 @@ def upload_image(request):
             image_file = request.FILES['image']
             result = process_medicine_image(image_file)
             
-            if request.user.is_authenticated:
-                scan = MedicineScan.objects.create(
-                    user=request.user,
-                    image=image_file,
-                    medicine_name=result.get('medicine_name', 'Unknown'),
-                    confidence_score=result.get('confidence', 0.0),
-                    medicine_info=result.get('medicine_info', {})
-                )
-                request.session['last_scan_id'] = scan.id
+            # Always create a scan object (even for anonymous users) to save the image and get a URL
+            scan = MedicineScan.objects.create(
+                user=request.user if request.user.is_authenticated else None,
+                image=image_file,
+                medicine_name=result.get('medicine_name', 'Unknown'),
+                confidence_score=result.get('confidence', 0.0),
+                medicine_info=result.get('medicine_info', {})
+            )
+            
+            request.session['last_scan_id'] = scan.id
             
             request.session['scan_result'] = {
                 'medicine_name': result.get('medicine_name', 'Unknown'),
                 'medicine_info': result.get('medicine_info', {}),
-                'image_url': image_file.url if hasattr(image_file, 'url') else None,
+                'image_url': scan.image.url,
                 'confidence': result.get('confidence', 0.0)
             }
             return redirect('scanner:results')

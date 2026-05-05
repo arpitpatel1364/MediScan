@@ -56,7 +56,7 @@
 
 ### Medicine Scanning
 ![Scan Page](Screenshots/scan_page.png)
-![Scan Results](Screenshots/scan_results.png)
+![Scan Results](Screenshots/scan_result.png)
 
 ### Reminders & History
 ![Medication Reminders](Screenshots/reminders_page.png)
