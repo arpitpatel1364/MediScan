@@ -8,24 +8,119 @@
     <div class="card">
         <div class="card-header">
             <h1 class="text-3xl font-display font-bold text-gray-800 flex items-center">
-                <i class="fas fa-cog text-primary-500 mr-3"></i>
-                Settings
+                <i class="fas fa-sliders-h text-primary-500 mr-3"></i>
+                App Preferences
             </h1>
         </div>
         
-        <div class="text-center py-12">
-            <div class="medical-icon bg-blue-100 mb-6">
-                <i class="fas fa-sliders-h text-blue-500 text-4xl"></i>
+        <form method="POST" class="space-y-8">
+            {% csrf_token %}
+            
+            <!-- Notification Settings -->
+            <div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-bell text-medical-blue mr-2"></i>
+                    Notification Channels
+                </h3>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                        <label class="flex items-start space-x-3 cursor-pointer">
+                            {{ form.notifications_enabled }}
+                            <div class="flex-1">
+                                <span class="font-medium text-gray-800">Push Notifications</span>
+                                <p class="text-sm text-gray-500 mt-1">Get real-time alerts on this browser/device for medication doses.</p>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                        <label class="flex items-start space-x-3 cursor-pointer">
+                            {{ form.email_reminders }}
+                            <div class="flex-1">
+                                <span class="font-medium text-gray-800">Email Alerts</span>
+                                <p class="text-sm text-gray-500 mt-1">Receive backup reminders via email for your scheduled medicines.</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
             </div>
-            <h3 class="text-2xl font-display font-semibold text-gray-800 mb-4">Application Settings</h3>
-            <p class="text-gray-600 mb-8 max-w-md mx-auto">
-                Settings and preferences will be available soon.
-            </p>
-            <a href="{% url 'dashboard' %}" class="btn-primary inline-flex">
-                <i class="fas fa-arrow-left"></i>
-                <span>Back to Dashboard</span>
-            </a>
-        </div>
+
+            <!-- Sound Settings -->
+            <div class="pt-6 border-t border-gray-100">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-volume-up text-orange-500 mr-2"></i>
+                    Alert Sound
+                </h3>
+                <div class="max-w-md">
+                    <label class="form-label">Select Notification Sound</label>
+                    {{ form.reminder_sound }}
+                    <p class="text-sm text-gray-500 mt-2">Choose the sound that plays for your medication reminders.</p>
+                    <button type="button" onclick="playTestSound()" class="btn-secondary mt-3 text-sm">
+                        <i class="fas fa-play"></i>
+                        <span>Test Sound</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Language & Region -->
+            <div class="pt-6 border-t border-gray-100">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-globe text-green-500 mr-2"></i>
+                    Language & Region
+                </h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="form-label">Preferred Language</label>
+                        <select class="form-input">
+                            <option value="en">English (US)</option>
+                            <option value="es">Español</option>
+                            <option value="fr">Français</option>
+                            <option value="hi">हिन्दी</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Time Zone</label>
+                        <select class="form-input">
+                            <option value="UTC">UTC</option>
+                            <option value="IST" selected>India Standard Time (IST)</option>
+                            <option value="EST">Eastern Standard Time (EST)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Security -->
+            <div class="pt-6 border-t border-gray-100">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-shield-alt text-red-500 mr-2"></i>
+                    Security
+                </h3>
+                <div class="flex flex-wrap gap-3">
+                    <button type="button" class="btn-secondary">
+                        <i class="fas fa-key"></i>
+                        <span>Change Password</span>
+                    </button>
+                    <button type="button" class="btn-secondary">
+                        <i class="fas fa-fingerprint"></i>
+                        <span>Biometric Auth</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end space-x-4 pt-8 border-t border-gray-100">
+                <a href="{% url 'scanner:dashboard' %}" class="btn-secondary">Back to Dashboard</a>
+                <button type="submit" class="btn-primary px-8">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Apply Settings</span>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
-{% endblock %} 
+
+<script>
+function playTestSound() {
+    const sound = document.querySelector('[name="reminder_sound"]').value;
+    alert('Testing sound: ' + sound + ' (Sound playback would trigger in actual implementation)');
+}
+</script>
+{% endblock %}

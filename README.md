@@ -1,212 +1,151 @@
-# MediScan Pro - Medicine Scanner Application
+# MediScan Pro - Smart Medicine Management
 
-A Django-based web application for scanning and managing medicines using AI-powered image recognition.
+[![Django](https://img.shields.io/badge/Backend-Django%204.2-092e20?style=for-the-badge&logo=django)](https://www.djangoproject.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind%20CSS-38bdf8?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![PWA](https://img.shields.io/badge/Features-PWA%20Ready-059669?style=for-the-badge&logo=pwa)](https://web.dev/progressive-web-apps/)
 
-## Features
+**MediScan Pro** is a state-of-the-art medicine management platform designed to simplify healthcare through AI-powered medicine scanning, smart reminders, and comprehensive health tracking.
 
-- **Medicine Scanning**: Upload medicine images for AI-powered identification
-- **Reminder Management**: Set up medication reminders with customizable schedules
-- **Medicine History**: Track all scanned medicines with detailed information
-- **Health Insights**: Analytics and reports on medication usage
-- **User Authentication**: Secure login and registration system
-- **Responsive Design**: Mobile-friendly interface
+---
+
+## System Architecture
+
+```text
+                                  +---------------------------------------+
+                                  |            User Interface             |
+                                  |      (Responsive Web / PWA App)       |
+                                  +-------------------+-------------------+
+                                                      |
+                                                      | HTTPS
+                                                      v
+                                  +-------------------+-------------------+
+                                  |         Reverse Proxy / WSGI          |
+                                  |          (Nginx / Gunicorn)           |
+                                  +-------------------+-------------------+
+                                                      |
+                                                      |
+          +-------------------------------------------v-------------------------------------------+
+          |                                  Django Core Application                              |
+          |  (Auth System, Scan Processor, Reminder Scheduler, Health Analytics, API Gateways)     |
+          +----------+-----------------------+-------------------------+--------------------------+
+                     |                       |                         |
+          +----------v----------+  +---------v----------+  +-----------v-----------+
+          |      Database       |  |   Cache & Tasks    |  |    External APIs      |
+          | (PostgreSQL/SQLite) |  |   (Redis/Celery)   |  |  (AI Vision Services) |
+          |                     |  |  *Session/Insights |  |  *Medicine Database   |
+          +---------------------+  +--------------------+  +-----------------------+
+```
+
+---
+
+## Key Features
+
+*   **AI Smart Scan**: Advanced image processing to identify medicines from packaging.
+*   **Intelligent Reminders**: Customizable schedules (Daily, Twice daily, etc.) with notification support.
+*   **Health Insights**: Visual analytics of your medication adherence and scanning history.
+*   **Secure Auth**: Robust user registration and login system with Profile management.
+*   **PWA Support**: Installable on mobile and desktop for an app-like experience.
+*   **Data Export**: Export your entire medication history in JSON format.
+
+---
+
+## Visual Preview
+
+### Dashboard & Analytics
+![User Dashboard](Screenshots/dashboard_page.png)
+
+### Medicine Scanning
+![Scan Page](Screenshots/scan_page.png)
+![Scan Results](Screenshots/scan_results.png)
+
+### Reminders & History
+![Medication Reminders](Screenshots/reminders_page.png)
+![Scan History](Screenshots/history_page.png)
+
+### Profile & Details
+![User Profile](Screenshots/profile_page.png)
+![Medicine Details](Screenshots/medicine_detail.png)
+
+---
 
 ## Technology Stack
 
-- **Backend**: Django 4.2.7
-- **Frontend**: HTML, CSS, JavaScript with Tailwind CSS
-- **Database**: SQLite (development) / PostgreSQL (production)
-- **Image Processing**: Pillow
-- **AI/ML**: Mock implementation (ready for integration with real AI services)
+### Backend
+- **Framework**: [Django 4.2](https://www.djangoproject.com/) (Python)
+- **Database**: SQLite (Development) / PostgreSQL (Production)
+- **Task Queue**: Redis for caching and background operations
+- **Image Handling**: Pillow (Python Imaging Library)
 
-## Installation
+### Frontend
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) (Modern utility-first framework)
+- **Icons**: FontAwesome 6.0
+- **Logic**: Vanilla JavaScript (ES6+)
+- **Templates**: Django Template Language (DTL)
+
+---
+
+## Installation & Setup
 
 ### Prerequisites
+- Python 3.8+
+- Redis (optional, for advanced caching)
 
-- Python 3.8 or higher
-- pip (Python package installer)
+### Steps
 
-### Setup Instructions
+1.  **Clone & Navigate**
+    ```bash
+    git clone <repository-url>
+    cd MediScan
+    ```
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd medicine_scanner
-   ```
+2.  **Environment Setup**
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate  # Windows: venv\Scripts\activate
+    pip install -r requirements.txt
+    ```
 
-2. **Create a virtual environment**
-   ```bash
-   python -m venv venv
-   
-   # On Windows
-   venv\Scripts\activate
-   
-   # On macOS/Linux
-   source venv/bin/activate
-   ```
+3.  **Database Initialization**
+    ```bash
+    python3 manage.py makemigrations
+    python3 manage.py migrate
+    python3 manage.py createsuperuser # Create admin account
+    ```
 
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+4.  **Run Server**
+    ```bash
+    python3 manage.py runserver
+    ```
 
-4. **Run migrations**
-   ```bash
-   python manage.py makemigrations
-   python manage.py migrate
-   ```
-
-5. **Create a superuser (optional)**
-   ```bash
-   python manage.py createsuperuser
-   ```
-
-6. **Run the development server**
-   ```bash
-   python manage.py runserver
-   ```
-
-7. **Access the application**
-   - Open your browser and go to `http://127.0.0.1:8000/`
-   - Admin panel: `http://127.0.0.1:8000/admin/`
+---
 
 ## Project Structure
 
-```
-medicine_scanner/
-├── manage.py                 # Django management script
-├── requirements.txt          # Python dependencies
-├── README.md                # This file
-├── medicine_scanner/        # Project settings
-│   ├── __init__.py
-│   ├── settings.py          # Django settings
-│   ├── urls.py              # Main URL configuration
-│   ├── asgi.py
-│   └── wsgi.py
-├── scan_app/               # Main application
-│   ├── __init__.py
-│   ├── admin.py            # Admin interface configuration
-│   ├── apps.py             # App configuration
-│   ├── models.py           # Database models
-│   ├── views.py            # View functions
-│   ├── urls.py             # App URL patterns
-│   ├── forms.py            # Form definitions
-│   ├── utils.py            # Utility functions
-│   ├── templates/          # HTML templates
-│   │   ├── base.html
-│   │   ├── index.html
-│   │   ├── login.html
-│   │   ├── signup.html
-│   │   ├── results.html
-│   │   ├── history.html
-│   │   ├── reminders.html
-│   │   └── scanner/
-│   │       ├── dashboard.html
-│   │       ├── favorites.html
-│   │       ├── calendar.html
-│   │       ├── reports.html
-│   │       └── medicine_detail.html
-│   ├── static/             # Static files
-│   │   ├── css/
-│   │   ├── js/
-│   │   └── images/
-│   └── migrations/         # Database migrations
-└── media/                  # User-uploaded files
+```text
+MediScan/
+├── medicine_scanner/       # Project Configuration
+│   ├── settings.py         # Global Settings (Auth, DB, Redis)
+│   └── urls.py             # Root URL Routing
+├── scan_app/               # Main Application Logic
+│   ├── models.py           # UserProfile, MedicineScan, Reminder
+│   ├── views.py            # Authentication & Dashboard Controllers
+│   ├── forms.py            # Custom User & Reminder Forms
+│   ├── templates/          # Modern HTML UI Components
+│   └── static/             # Assets (CSS, JS, Images)
+├── media/                  # User Uploaded Scans & Profiles
+└── manage.py               # Management Entry Point
 ```
 
-## Usage
+---
 
-### For Users
+## Security Features
 
-1. **Registration/Login**: Create an account or log in to access features
-2. **Scan Medicine**: Upload an image of a medicine for identification
-3. **View Results**: Get detailed information about the scanned medicine
-4. **Set Reminders**: Create medication reminders with custom schedules
-5. **Track History**: View all previously scanned medicines
-6. **Manage Favorites**: Save frequently used medicines for quick access
+- **CSRF Protection**: Enabled on all state-changing forms.
+- **Password Hashing**: Uses Django's industry-standard PBKDF2 algorithm.
+- **Secure Sessions**: Configuration for HTTPS and secure cookies in production.
+- **Data Privacy**: One-to-one user data isolation.
 
-### For Administrators
-
-1. **Admin Panel**: Access `http://127.0.0.1:8000/admin/` with superuser credentials
-2. **User Management**: View and manage user accounts
-3. **Medicine Data**: Monitor scanned medicines and user activity
-4. **System Statistics**: View analytics and reports
-
-## Configuration
-
-### Environment Variables
-
-Create a `.env` file in the project root for environment-specific settings:
-
-```env
-DEBUG=True
-SECRET_KEY=your-secret-key-here
-DATABASE_URL=sqlite:///db.sqlite3
-ALLOWED_HOSTS=localhost,127.0.0.1
-```
-
-### Database Configuration
-
-The application uses SQLite by default. For production, configure PostgreSQL:
-
-```python
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'your_db_name',
-        'USER': 'your_db_user',
-        'PASSWORD': 'your_db_password',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
-```
-
-## API Integration
-
-The application is designed to integrate with AI/ML services for medicine recognition. Currently, it uses a mock implementation in `utils.py`. To integrate with real AI services:
-
-1. **Google Cloud Vision API**
-2. **Azure Computer Vision**
-3. **Custom ML models**
-
-Update the `process_medicine_image()` function in `utils.py` to use your preferred AI service.
-
-## Testing
-
-Run tests using pytest:
-
-```bash
-pytest
-```
-
-## Deployment
-
-### Production Setup
-
-1. **Set DEBUG=False** in settings.py
-2. **Configure a production database** (PostgreSQL recommended)
-3. **Set up static file serving** with whitenoise or nginx
-4. **Use a production WSGI server** like gunicorn
-5. **Configure environment variables** for security
-
-### Docker Deployment
-
-```bash
-# Build the image
-docker build -t medicinescanner .
-
-# Run the container
-docker run -p 8000:8000 medicinescanner
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new features
-5. Submit a pull request
+---
 
 ## License
 

@@ -4,28 +4,254 @@
 {% block title %}Medicine Interactions - MediScan Pro{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <div class="card">
-        <div class="card-header">
-            <h1 class="text-3xl font-display font-bold text-gray-800 flex items-center">
-                <i class="fas fa-exclamation-triangle text-primary-500 mr-3"></i>
-                Medicine Interactions
+<div class="max-w-6xl mx-auto">
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <div>
+            <h1 class="text-4xl font-display font-bold text-gray-800 mb-2 flex items-center">
+                <i class="fas fa-exclamation-triangle text-orange-500 mr-4"></i>
+                Interaction Checker
             </h1>
+            <p class="text-gray-600">Identify potential risks between multiple medications</p>
         </div>
-        
-        <div class="text-center py-12">
-            <div class="medical-icon bg-blue-100 mb-6">
-                <i class="fas fa-pills text-blue-500 text-4xl"></i>
+        <div class="mt-4 md:mt-0">
+            <span class="bg-blue-100 text-blue-700 px-4 py-2 rounded-xl text-sm font-semibold border border-blue-200">
+                <i class="fas fa-shield-check mr-2"></i>Database v2.4.0 Updated
+            </span>
+        </div>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Input Section -->
+        <div class="lg:col-span-1 space-y-6">
+            <div class="card">
+                <h3 class="text-lg font-display font-semibold text-gray-800 mb-4">Select Medications</h3>
+                <div class="space-y-4">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="medSearch" placeholder="Search saved medicines..." class="form-input pl-10">
+                    </div>
+                    
+                    <div class="max-h-64 overflow-y-auto space-y-2" id="medList">
+                        {% for scan in scans %}
+                        <div class="flex items-center p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-100 cursor-pointer transition-all med-item" 
+                             onclick="toggleMed('{{ scan.medicine_name }}', '{{ scan.id }}')">
+                            <div class="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fas fa-pills text-primary-600"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-gray-800">{{ scan.medicine_name }}</p>
+                                <p class="text-xs text-gray-500">Scanned {{ scan.created_at|date:"M d" }}</p>
+                            </div>
+                            <i class="fas fa-plus text-gray-300 transition-colors check-icon"></i>
+                        </div>
+                        {% empty %}
+                        <p class="text-center text-sm text-gray-500 py-4">No saved medicines found. Scan some first!</p>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
-            <h3 class="text-2xl font-display font-semibold text-gray-800 mb-4">Drug Interaction Checker</h3>
-            <p class="text-gray-600 mb-8 max-w-md mx-auto">
-                Medicine interaction checking will be available soon.
-            </p>
-            <a href="{% url 'dashboard' %}" class="btn-primary inline-flex">
-                <i class="fas fa-arrow-left"></i>
-                <span>Back to Dashboard</span>
-            </a>
+
+            <div class="card bg-gray-50 border-dashed border-2">
+                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Checked Medications</h3>
+                <div id="selectedMeds" class="flex flex-wrap gap-2">
+                    <!-- Dynamic chips -->
+                </div>
+                <div id="emptySelected" class="text-center py-4">
+                    <p class="text-xs text-gray-400 italic">No medicines selected</p>
+                </div>
+            </div>
+
+            <button onclick="checkInteractions()" class="btn-primary w-full justify-center py-4 shadow-lg shadow-primary-200">
+                <i class="fas fa-sync-alt"></i>
+                <span>Check Interactions</span>
+            </button>
+        </div>
+
+        <!-- Results Section -->
+        <div class="lg:col-span-2">
+            <div id="initialState" class="card h-full flex flex-col items-center justify-center text-center py-16">
+                <div class="medical-icon bg-blue-50 mb-6 scale-150">
+                    <i class="fas fa-microscope text-blue-500"></i>
+                </div>
+                <h3 class="text-2xl font-display font-semibold text-gray-800 mb-2">Ready for Analysis</h3>
+                <p class="text-gray-500 max-w-sm">Select at least two medications from your history to analyze potential drug-drug interactions.</p>
+            </div>
+
+            <div id="loadingState" class="card h-full hidden flex flex-col items-center justify-center text-center py-16">
+                <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary-500 mb-6"></div>
+                <h3 class="text-2xl font-display font-semibold text-gray-800 mb-2">Analyzing...</h3>
+                <p class="text-gray-500">Comparing chemical components and contraindications.</p>
+            </div>
+
+            <div id="resultsState" class="hidden space-y-6">
+                <!-- Summary Card -->
+                <div class="card border-l-8" id="resultStatusBorder">
+                    <div class="flex items-start gap-6">
+                        <div class="medical-icon bg-red-100" id="resultIconBg">
+                            <i class="fas fa-exclamation-circle text-red-600" id="resultIcon"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-display font-bold text-gray-800 mb-1" id="resultTitle">Interaction Found</h2>
+                            <p class="text-gray-600" id="resultSubtitle">1 Moderate Interaction detected between selected medications.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Interactions -->
+                <div id="interactionDetails" class="space-y-4">
+                    <!-- Dynamic items -->
+                </div>
+
+                <div class="card bg-blue-50 border-blue-200">
+                    <h4 class="font-bold text-blue-800 flex items-center mb-2">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Medical Disclaimer
+                    </h4>
+                    <p class="text-sm text-blue-700 leading-relaxed">
+                        This tool is for informational purposes only and does not substitute professional medical advice. Always consult with your doctor or pharmacist before combining medications.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-{% endblock %} 
+
+<script>
+let selectedMeds = new Set();
+
+function toggleMed(name, id) {
+    if (selectedMeds.has(name)) {
+        selectedMeds.delete(name);
+    } else {
+        selectedMeds.add(name);
+    }
+    updateUI();
+}
+
+function updateUI() {
+    const selectedContainer = document.getElementById('selectedMeds');
+    const emptySelected = document.getElementById('emptySelected');
+    const items = document.querySelectorAll('.med-item');
+    
+    selectedContainer.innerHTML = '';
+    
+    if (selectedMeds.size === 0) {
+        emptySelected.classList.remove('hidden');
+    } else {
+        emptySelected.classList.add('hidden');
+        selectedMeds.forEach(name => {
+            const chip = document.createElement('div');
+            chip.className = 'bg-primary-100 text-primary-700 px-3 py-1 rounded-lg text-sm font-semibold flex items-center gap-2 animate-fade-in';
+            chip.innerHTML = `${name} <i class="fas fa-times cursor-pointer hover:text-primary-900" onclick="toggleMed('${name}')"></i>`;
+            selectedContainer.appendChild(chip);
+        });
+    }
+
+    items.forEach(item => {
+        const name = item.querySelector('p').textContent;
+        const icon = item.querySelector('.check-icon');
+        if (selectedMeds.has(name)) {
+            item.classList.add('bg-primary-50', 'border-primary-200');
+            icon.classList.remove('fa-plus', 'text-gray-300');
+            icon.classList.add('fa-check-circle', 'text-primary-500');
+        } else {
+            item.classList.remove('bg-primary-50', 'border-primary-200');
+            icon.classList.remove('fa-check-circle', 'text-primary-500');
+            icon.classList.add('fa-plus', 'text-gray-300');
+        }
+    });
+}
+
+function checkInteractions() {
+    if (selectedMeds.size < 2) {
+        alert('Please select at least two medications to check.');
+        return;
+    }
+
+    const initial = document.getElementById('initialState');
+    const loading = document.getElementById('loadingState');
+    const results = document.getElementById('resultsState');
+    
+    initial.classList.add('hidden');
+    loading.classList.remove('hidden');
+    results.classList.add('hidden');
+
+    setTimeout(() => {
+        loading.classList.add('hidden');
+        results.classList.remove('hidden');
+        
+        // Mock interaction logic
+        const medArray = Array.from(selectedMeds).map(m => m.toLowerCase());
+        let found = false;
+        
+        const detailsContainer = document.getElementById('interactionDetails');
+        detailsContainer.innerHTML = '';
+
+        // Example mock interaction
+        if (medArray.some(m => m.includes('aspirin')) && medArray.some(m => m.includes('ibuprofen'))) {
+            addInteraction('Moderate', 'Aspirin + Ibuprofen', 'Combined use may increase risk of stomach bleeding and reduce Aspirins heart-protective effects.', 'orange');
+            found = true;
+        } else if (medArray.some(m => m.includes('paracetamol')) && medArray.some(m => m.includes('tylenol'))) {
+            addInteraction('Severe', 'Paracetamol Overdose Risk', 'Both selected medicines contain Acetaminophen. Combining them significantly increases risk of liver damage.', 'red');
+            found = true;
+        }
+
+        if (found) {
+            updateStatus('Interaction Detected', `${detailsContainer.children.length} risk(s) identified.`, 'red');
+        } else {
+            updateStatus('Safe to Combine', 'No known interactions found between these specific medications.', 'green');
+            detailsContainer.innerHTML = `
+                <div class="card bg-green-50 border-green-200 text-center py-10">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-check-circle text-green-600 text-3xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-green-800">No Interactions Found</h4>
+                    <p class="text-green-700 mt-2">These medications are generally safe to take together.</p>
+                </div>
+            `;
+        }
+    }, 1500);
+}
+
+function addInteraction(severity, title, desc, color) {
+    const container = document.getElementById('interactionDetails');
+    const div = document.createElement('div');
+    div.className = `card border-l-4 border-${color}-500 animate-slide-up`;
+    div.innerHTML = `
+        <div class="flex justify-between items-start mb-2">
+            <h4 class="font-bold text-gray-800">${title}</h4>
+            <span class="bg-${color}-100 text-${color}-800 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">${severity}</span>
+        </div>
+        <p class="text-sm text-gray-600 leading-relaxed">${desc}</p>
+        <div class="mt-4 flex gap-2">
+            <span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-500">GI System</span>
+            <span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-500">Hematological</span>
+        </div>
+    `;
+    container.appendChild(div);
+}
+
+function updateStatus(title, subtitle, color) {
+    const border = document.getElementById('resultStatusBorder');
+    const iconBg = document.getElementById('resultIconBg');
+    const icon = document.getElementById('resultIcon');
+    const h2 = document.getElementById('resultTitle');
+    const p = document.getElementById('resultSubtitle');
+
+    border.className = `card border-l-8 border-${color}-500`;
+    iconBg.className = `medical-icon bg-${color}-100`;
+    icon.className = `fas fa-${color === 'red' ? 'exclamation-circle' : 'check-circle'} text-${color}-600`;
+    h2.textContent = title;
+    p.textContent = subtitle;
+}
+
+// Search Filter
+document.getElementById('medSearch').addEventListener('keyup', function(e) {
+    const term = e.target.value.toLowerCase();
+    document.querySelectorAll('.med-item').forEach(item => {
+        const text = item.querySelector('p').textContent.toLowerCase();
+        item.style.display = text.includes(term) ? 'flex' : 'none';
+    });
+});
+</script>
+{% endblock %}

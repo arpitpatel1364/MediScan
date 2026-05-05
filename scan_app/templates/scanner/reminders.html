@@ -439,51 +439,72 @@ function filterReminders(status) {
 }
 
 function markComplete(reminderId) {
-    fetch(`/mark-reminder-complete/${reminderId}/`, {
+    fetch(`/reminders/${reminderId}/complete/`, {
         method: 'POST',
         headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            'X-CSRFToken': '{{ csrf_token }}'
         }
-    }).then(() => {
-        location.reload();
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message || 'Error marking reminder as complete');
+        }
     });
 }
 
 function snoozeReminder(reminderId) {
     const minutes = prompt('Snooze for how many minutes?', '15');
     if (minutes) {
-        fetch(`/snooze-reminder/${reminderId}/`, {
+        fetch(`/reminders/${reminderId}/snooze/`, {
             method: 'POST',
             headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-CSRFToken': '{{ csrf_token }}',
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ minutes: parseInt(minutes) })
-        }).then(() => {
-            alert(`Reminder snoozed for ${minutes} minutes`);
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Reminder snoozed for ${minutes} minutes`);
+                location.reload();
+            } else {
+                alert(data.message || 'Error snoozing reminder');
+            }
         });
     }
 }
 
 function pauseReminder(reminderId) {
-    fetch(`/pause-reminder/${reminderId}/`, {
+    fetch(`/reminders/${reminderId}/pause/`, {
         method: 'POST',
         headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            'X-CSRFToken': '{{ csrf_token }}'
         }
-    }).then(() => {
-        location.reload();
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message || 'Error pausing reminder');
+        }
     });
 }
 
 function resumeReminder(reminderId) {
-    fetch(`/resume-reminder/${reminderId}/`, {
+    fetch(`/reminders/${reminderId}/resume/`, {
         method: 'POST',
         headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            'X-CSRFToken': '{{ csrf_token }}'
         }
-    }).then(() => {
-        location.reload();
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message || 'Error resuming reminder');
+        }
     });
 }
 
@@ -504,20 +525,25 @@ function closeDeleteModal() {
 
 function confirmDeleteReminder() {
     if (deleteReminderId) {
-        fetch(`/delete-reminder/${deleteReminderId}/`, {
-            method: 'DELETE',
+        fetch(`/reminders/${deleteReminderId}/delete/`, {
+            method: 'POST',
             headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                'X-CSRFToken': '{{ csrf_token }}'
             }
-        }).then(() => {
-            location.reload();
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Error deleting reminder');
+            }
         });
     }
     closeDeleteModal();
 }
 
 function loadReminderData(reminderId) {
-    fetch(`/get-reminder/${reminderId}/`)
+    fetch(`/reminders/${reminderId}/`)
         .then(response => response.json())
         .then(data => {
             document.getElementById('medicineName').value = data.medicine_name;
@@ -535,8 +561,8 @@ document.getElementById('reminderForm').addEventListener('submit', function(e) {
     
     const formData = new FormData(this);
     const url = document.getElementById('reminderId').value ? 
-        `/edit-reminder/${document.getElementById('reminderId').value}/` : 
-        '/add-reminder/';
+        `/reminders/${document.getElementById('reminderId').value}/edit/` : 
+        '/reminders/add/';
     
     fetch(url, {
         method: 'POST',

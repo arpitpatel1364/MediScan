@@ -13,7 +13,8 @@
             <p class="text-gray-600">Welcome back! Here's your medicine management overview</p>
         </div>
         <div class="flex items-center space-x-3 mt-4 md:mt-0">
-            <button onclick="location.href='/scan/'" class="btn-primary">
+            {% url 'scanner:scan' as scan_url %}
+            <button onclick="location.href='{{ scan_url }}';" class="btn-primary">
                 <i class="fas fa-camera"></i>
                 <span>Scan Medicine</span>
             </button>

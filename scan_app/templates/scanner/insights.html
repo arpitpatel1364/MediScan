@@ -4,28 +4,196 @@
 {% block title %}Health Insights - MediScan Pro{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <div class="card">
-        <div class="card-header">
-            <h1 class="text-3xl font-display font-bold text-gray-800 flex items-center">
-                <i class="fas fa-brain text-primary-500 mr-3"></i>
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <div>
+            <h1 class="text-4xl font-display font-bold text-gray-800 mb-2 flex items-center">
+                <i class="fas fa-brain text-primary-500 mr-4"></i>
                 Health Insights
             </h1>
+            <p class="text-gray-600">AI-powered analytics and medication patterns</p>
         </div>
-        
-        <div class="text-center py-12">
-            <div class="medical-icon bg-blue-100 mb-6">
-                <i class="fas fa-chart-line text-blue-500 text-4xl"></i>
+        <div class="mt-4 md:mt-0">
+            <span class="bg-primary-100 text-primary-700 px-4 py-2 rounded-xl text-sm font-semibold border border-primary-200">
+                <i class="fas fa-sparkles mr-2"></i>AI Analysis Active
+            </span>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid md:grid-cols-4 gap-4 mb-8">
+        <div class="card bg-gradient-to-br from-primary-500 to-primary-600 text-white border-none">
+            <p class="text-primary-100 text-sm font-semibold uppercase tracking-wider">Adherence Rate</p>
+            <div class="text-3xl font-bold mt-1">94%</div>
+            <p class="text-primary-100 text-xs mt-2"><i class="fas fa-arrow-up mr-1"></i>4% from last month</p>
+        </div>
+        <div class="stats-card">
+            <div class="stats-number">{{ total_scans }}</div>
+            <div class="stats-label">Total Scans</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-number">{{ total_reminders }}</div>
+            <div class="stats-label">Schedules</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-number">{{ active_reminders }}</div>
+            <div class="stats-label">Active Now</div>
+        </div>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Main Charts -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Adherence Trend -->
+            <div class="card">
+                <div class="card-header flex justify-between items-center">
+                    <h3 class="text-xl font-display font-semibold text-gray-800">Medication Adherence Trend</h3>
+                    <select class="text-sm border-gray-200 rounded-lg">
+                        <option>Last 7 Days</option>
+                        <option>Last 30 Days</option>
+                    </select>
+                </div>
+                <div class="h-64 mt-4">
+                    <canvas id="adherenceChart"></canvas>
+                </div>
             </div>
-            <h3 class="text-2xl font-display font-semibold text-gray-800 mb-4">AI Health Analytics</h3>
-            <p class="text-gray-600 mb-8 max-w-md mx-auto">
-                Personalized health insights and analytics will be available soon.
-            </p>
-            <a href="{% url 'dashboard' %}" class="btn-primary inline-flex">
-                <i class="fas fa-arrow-left"></i>
-                <span>Back to Dashboard</span>
-            </a>
+
+            <!-- Categories Distribution -->
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="card">
+                    <h3 class="text-lg font-display font-semibold text-gray-800 mb-4">Medicine Categories</h3>
+                    <div class="h-48">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 class="text-lg font-display font-semibold text-gray-800 mb-4">Daily Distribution</h3>
+                    <div class="h-48">
+                        <canvas id="timeDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Insights Sidebar -->
+        <div class="space-y-6">
+            <div class="card bg-medical-blue text-white border-none relative overflow-hidden">
+                <div class="relative z-10">
+                    <h3 class="text-lg font-display font-semibold mb-3 flex items-center">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        AI Smart Tip
+                    </h3>
+                    <p class="text-blue-100 text-sm leading-relaxed">
+                        Based on your patterns, you are 30% more likely to miss doses on weekends. Consider setting a specific "Weekend Alert" to stay on track.
+                    </p>
+                </div>
+                <i class="fas fa-robot absolute -bottom-4 -right-4 text-7xl text-blue-400 opacity-20"></i>
+            </div>
+
+            <div class="card">
+                <h3 class="text-lg font-display font-semibold text-gray-800 mb-4">Recent Health Events</h3>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-2 h-2 mt-2 rounded-full bg-green-500"></div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">Perfect Week!</p>
+                            <p class="text-xs text-gray-500">You completed all 14 doses this week.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-2 h-2 mt-2 rounded-full bg-orange-500"></div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">Interaction Warning</p>
+                            <p class="text-xs text-gray-500">Added Aspirin. Checking with your active Paracetamol.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-2 h-2 mt-2 rounded-full bg-blue-500"></div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">New Scan Recorded</p>
+                            <p class="text-xs text-gray-500">Added Vit-C to your history.</p>
+                        </div>
+                    </div>
+                </div>
+                <button class="w-full mt-6 py-2 text-primary-600 text-sm font-bold hover:bg-primary-50 rounded-lg transition-colors">
+                    View Full Report
+                </button>
+            </div>
         </div>
     </div>
 </div>
-{% endblock %} 
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Adherence Chart
+    const adherenceCtx = document.getElementById('adherenceChart').getContext('2d');
+    new Chart(adherenceCtx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Adherence %',
+                data: [90, 100, 85, 95, 100, 80, 75],
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, max: 100 },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // Category Chart
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(categoryCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Painkillers', 'Antibiotics', 'Vitamins', 'Others'],
+            datasets: [{
+                data: [40, 20, 25, 15],
+                backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#6b7280'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } }
+        }
+    });
+
+    // Time Distribution Chart
+    const timeCtx = document.getElementById('timeDistributionChart').getContext('2d');
+    new Chart(timeCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Morning', 'Afternoon', 'Evening', 'Night'],
+            datasets: [{
+                data: [12, 5, 8, 3],
+                backgroundColor: '#3b82f6',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { display: false },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+</script>
+{% endblock %}

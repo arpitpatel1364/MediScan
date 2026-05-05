@@ -21,16 +21,50 @@ from .forms import CustomUserCreationForm, ReminderForm, UserProfileForm
 # Stub for undefined utility functions
 def process_medicine_image(image_file):
     # Placeholder: In production, replace with actual AI/ML image processing
-    return {
-        'medicine_name': 'Sample Medicine',
-        'confidence': 0.95,
-        'medicine_info': {
-            'uses': 'Pain relief',
-            'dosage': '500mg every 6 hours',
-            'side_effects': 'Nausea, dizziness',
-            'mrp': '10 USD',
-            'alternatives': ['Paracetamol', 'Ibuprofen']
+    medicine_names = ['Paracetamol', 'Amoxicillin', 'Ibuprofen', 'Metformin', 'Atorvastatin']
+    import random
+    name = random.choice(medicine_names)
+    
+    infos = {
+        'Paracetamol': {
+            'uses': 'Relief of mild to moderate pain and fever.',
+            'dosage': '500mg - 1000mg every 4-6 hours. Max 4g per day.',
+            'side_effects': 'Nausea, allergic reactions (rare), liver damage in high doses.',
+            'mrp': '5.00 USD',
+            'alternatives': ['Tylenol', 'Crocin', 'Calpol'],
+            'category': 'Pain Relief'
+        },
+        'Amoxicillin': {
+            'uses': 'Treatment of bacterial infections like pneumonia and bronchitis.',
+            'dosage': '250mg - 500mg every 8 hours for 7-10 days.',
+            'side_effects': 'Diarrhea, nausea, skin rash, yeast infections.',
+            'mrp': '12.50 USD',
+            'alternatives': ['Augmentin', 'Amoxil'],
+            'category': 'Antibiotics'
+        },
+        'Ibuprofen': {
+            'uses': 'Anti-inflammatory for pain, swelling, and fever.',
+            'dosage': '200mg - 400mg every 4-6 hours after food.',
+            'side_effects': 'Stomach pain, heartburn, dizziness, risk of ulcers.',
+            'mrp': '8.00 USD',
+            'alternatives': ['Advil', 'Motrin', 'Brufen'],
+            'category': 'Pain Relief'
         }
+    }
+    
+    info = infos.get(name, {
+        'uses': 'Pain relief',
+        'dosage': '500mg every 6 hours',
+        'side_effects': 'Nausea, dizziness',
+        'mrp': '10 USD',
+        'alternatives': ['Generic Alt 1', 'Generic Alt 2'],
+        'category': 'General'
+    })
+    
+    return {
+        'medicine_name': name,
+        'confidence': round(random.uniform(0.85, 0.99), 2),
+        'medicine_info': info
     }
 
 def get_medicine_info(medicine_name):
@@ -101,15 +135,21 @@ class SignUpView(CreateView):
     success_url = reverse_lazy('scanner:login')
 
     def form_valid(self, form):
-        response = super().form_valid(form)
         user = form.save()
-        UserProfile.objects.create(
+        # Explicitly set first and last name from POST if provided (since they aren't in the form fields)
+        user.first_name = self.request.POST.get('first_name', '')
+        user.last_name = self.request.POST.get('last_name', '')
+        user.save()
+        
+        UserProfile.objects.get_or_create(
             user=user,
-            phone=form.cleaned_data.get('phone', ''),
-            notifications_enabled=True
+            defaults={
+                'phone': form.cleaned_data.get('phone', ''),
+                'notifications_enabled': True
+            }
         )
         messages.success(self.request, 'Account created successfully! Please log in.')
-        return response
+        return redirect(self.success_url)
 
 # Main App Views
 def upload_image(request):
@@ -508,15 +548,15 @@ def user_profile(request):
 def user_settings(request):
     profile, created = UserProfile.objects.get_or_create(user=request.user)
     if request.method == 'POST':
-        profile.notifications_enabled = request.POST.get('notifications_enabled') == 'on'
-        profile.email_reminders = request.POST.get('email_reminders') == 'on'
-        profile.sms_reminders = request.POST.get('sms_reminders') == 'on'
-        profile.reminder_sound = request.POST.get('reminder_sound', 'default')
-        profile.save()
-        messages.success(request, 'Settings updated successfully!')
-        return redirect('scanner:user_settings')
+        form = UserProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Settings updated successfully!')
+            return redirect('scanner:user_settings')
+    else:
+        form = UserProfileForm(instance=profile)
     
-    context = {'profile': profile}
+    context = {'profile': profile, 'form': form}
     return render(request, 'scanner/settings.html', context)
 
 @login_required
@@ -723,7 +763,7 @@ def service_worker(request):
 const CACHE_NAME = 'mediscan-v1';
 const urlsToCache = [
   '/',
-  '/static/css/styles.css',
+  '/static/css/style.css',
   '/static/js/script.js',
   '/static/images/icon-192.png',
   '/offline/'

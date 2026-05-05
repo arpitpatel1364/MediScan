@@ -40,7 +40,7 @@
 
                         <!-- Quick Actions -->
                         <div class="flex flex-wrap gap-3 mb-6">
-                            <a href="/reminders?medicine_name={{ medicine_name }}&dosage={{ medicine_info.dosage }}" 
+                            <a href="{% url 'scanner:reminders' %}?medicine_name={{ medicine_name }}&dosage={{ medicine_info.dosage }}" 
                                class="btn-medical">
                                 <i class="fas fa-bell"></i>
                                 <span>Set Reminder</span>
@@ -178,17 +178,17 @@
             <div class="card">
                 <h3 class="text-lg font-display font-semibold text-gray-800 mb-4">Quick Actions</h3>
                 <div class="space-y-3">
-                    {% comment %} <a href="{% url 'upload_image' %}" class="btn-primary w-full justify-center"> {% endcomment %}
+                    <a href="{% url 'scanner:scan' %}" class="btn-primary w-full justify-center">
                         <i class="fas fa-camera"></i>
                         <span>Scan Another</span>
                     </a>
-                    <a href="../history" class="btn-secondary w-full justify-center">
+                    <a href="{% url 'scanner:history' %}" class="btn-secondary w-full justify-center">
                         <i class="fas fa-history"></i>
                         <span>View History</span>
                     </a>
-                    <button onclick="addToFavorites()" class="btn-secondary w-full justify-center">
+                    <button onclick="addToFavorites('{{ scan_id }}')" class="btn-secondary w-full justify-center" id="favoriteBtn">
                         <i class="fas fa-heart"></i>
-                        <span>Add to Favorites</span>
+                        <span id="favoriteText">Add to Favorites</span>
                     </button>
                 </div>
             </div>
@@ -249,9 +249,37 @@ Date: ${new Date().toLocaleDateString()}`;
     window.URL.revokeObjectURL(url);
 }
 
-function addToFavorites() {
-    // This would typically make an AJAX call to save to favorites
-    alert('Added to favorites! (Feature would be implemented with backend)');
+function addToFavorites(scanId) {
+    if (!scanId || scanId === 'None') {
+        alert('Please login to save favorites');
+        return;
+    }
+    
+    fetch(`/medicine/${scanId}/favorite/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const btn = document.getElementById('favoriteBtn');
+            const text = document.getElementById('favoriteText');
+            const icon = btn.querySelector('i');
+            
+            if (data.is_favorite) {
+                text.textContent = 'Remove from Favorites';
+                icon.classList.remove('far');
+                icon.classList.add('fas', 'text-red-500');
+            } else {
+                text.textContent = 'Add to Favorites';
+                icon.classList.remove('fas', 'text-red-500');
+                icon.classList.add('fas');
+            }
+        }
+    });
 }
 </script>
 {% endblock %}

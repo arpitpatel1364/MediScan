@@ -8,8 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="manifest" href="{% url 'scanner:manifest' %}">
     <link rel="icon" href="{% static 'images/icon-192.png' %}">
     <meta name="theme-color" content="#059669">
     <script>
@@ -55,7 +55,7 @@
     <nav class="bg-white/95 backdrop-blur-md shadow-xl border-b border-primary-100 sticky top-0 z-50">
         <div class="container mx-auto px-4 py-3">
             <div class="flex justify-between items-center">
-                <a href="../dashboard" class="flex items-center space-x-3 group">
+                <a href="{% url 'scanner:dashboard' %}" class="flex items-center space-x-3 group">
                     <div class="bg-gradient-to-r from-primary-600 to-medical-blue p-2 rounded-xl group-hover:scale-105 transition-transform duration-300">
                         <i class="fas fa-stethoscope text-white text-xl"></i>
                     </div>
@@ -70,38 +70,37 @@
                 <div class="flex items-center space-x-6">
                     {% if user.is_authenticated %}
                         <div class="hidden md:flex items-center space-x-4">
-                            <a href="/history" class="nav-link">
+                            <a href="{% url 'scanner:history' %}" class="nav-link">
                                 <i class="fas fa-history"></i>
                                 <span>History</span>
                             </a>
-                            <a href="/reminders" class="nav-link">
+                            <a href="{% url 'scanner:reminders' %}" class="nav-link">
                                 <i class="fas fa-bell"></i>
                                 <span>Reminders</span>
                             </a>
                         </div>
                         <div class="flex items-center space-x-3">
-                            <div class="bg-primary-100 p-2 rounded-full">
-                                <i class="fas fa-user-md text-primary-600"></i>
-                            </div>
-                            <a href="../profile" class="hidden md:block text-gray-800 font-medium">
-                                {{ user.username|title }}
-                            <div class="hidden md:block">
-                                <p class="text-sm font-medium text-gray-700">Welcome back</p>
-                                <p class="text-xs text-gray-500">{{ user.username|title }}</p>
-                            </div>
+                            <a href="{% url 'scanner:user_profile' %}" class="flex items-center space-x-3">
+                                <div class="bg-primary-100 p-2 rounded-full">
+                                    <i class="fas fa-user-md text-primary-600"></i>
+                                </div>
+                                <div class="hidden md:block">
+                                    <p class="text-sm font-medium text-gray-700">Welcome back</p>
+                                    <p class="text-xs text-gray-500">{{ user.username|title }}</p>
+                                </div>
                             </a>
-                            <a href="{% url 'logout' %}" class="btn-secondary">
+                            <a href="{% url 'scanner:logout' %}" class="btn-secondary">
                                 <i class="fas fa-sign-out-alt"></i>
                                 <span class="hidden md:inline">Logout</span>
                             </a>
                         </div>
                     {% else %}
                         <div class="flex items-center space-x-3">
-                            <a href="{% url 'login' %}" class="btn-secondary">
+                            <a href="{% url 'scanner:login' %}" class="btn-secondary">
                                 <i class="fas fa-sign-in-alt"></i>
                                 <span>Login</span>
                             </a>
-                            <a href="/registration/signup.html" class="btn-primary">
+                            <a href="{% url 'scanner:signup' %}" class="btn-primary">
                                 <i class="fas fa-user-plus"></i>
                                 <span>Sign Up</span>
                             </a>
@@ -170,17 +169,21 @@
     {% if user.is_authenticated %}
     <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-primary-100 z-40">
         <div class="flex items-center justify-around py-2">
-            {% comment %} <a href="{% url 'upload_image' %}" class="mobile-nav-item"> {% endcomment %}
+            <a href="{% url 'scanner:scan' %}" class="mobile-nav-item">
                 <i class="fas fa-camera"></i>
                 <span>Scan</span>
             </a>
-            <a href="/scanner/history" class="mobile-nav-item">
+            <a href="{% url 'scanner:history' %}" class="mobile-nav-item">
                 <i class="fas fa-history"></i>
                 <span>History</span>
             </a>
-            <a href="/scanner/reminders" class="mobile-nav-item">
+            <a href="{% url 'scanner:reminders' %}" class="mobile-nav-item">
                 <i class="fas fa-bell"></i>
                 <span>Reminders</span>
+            </a>
+            <a href="{% url 'scanner:user_profile' %}" class="mobile-nav-item">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile</span>
             </a>
         </div>
     </div>
@@ -189,7 +192,7 @@
     <script src="{% static 'js/script.js' %}"></script>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/static/service-worker.js')
+            navigator.serviceWorker.register('{% url "scanner:service_worker" %}')
                 .then(reg => console.log('Service Worker Registered'))
                 .catch(err => console.log('Service Worker Not Registered', err));
         }

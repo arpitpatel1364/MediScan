@@ -17,7 +17,7 @@
                 <span class="text-sm text-gray-600">Total Scans: </span>
                 <span class="font-bold text-primary-600">{{ scans|length|default:"0" }}</span>
             </div>
-            {% comment %} <a href="{% url 'upload_image' %}" class="btn-primary"> {% endcomment %}
+            <a href="{% url 'scanner:scan' %}" class="btn-primary">
                 <i class="fas fa-plus"></i>
                 <span>New Scan</span>
             </a>
@@ -119,11 +119,11 @@
                     
                     <!-- Actions -->
                     <div class="lg:w-1/4 flex lg:flex-col gap-2">
-                        <a href="../medicine_detail" class="btn-primary flex-1 justify-center">
+                        <a href="{% url 'scanner:medicine_detail' scan.id %}" class="btn-primary flex-1 justify-center">
                             <i class="fas fa-eye"></i>
                             <span>View Details</span>
                         </a>
-                        <a href="../reminders?medicine_name={{ scan.medicine_name }}" class="btn-medical flex-1 justify-center">
+                        <a href="{% url 'scanner:reminders' %}?medicine_name={{ scan.medicine_name }}" class="btn-medical flex-1 justify-center">
                             <i class="fas fa-bell"></i>
                             <span>Set Reminder</span>
                         </a>
@@ -180,7 +180,7 @@
             <p class="text-gray-600 mb-8 max-w-md mx-auto">
                 Start by scanning your first medicine to build your health history and get detailed information about your medications.
             </p>
-            {% comment %} <a href="{% url 'upload_image' %}" class="btn-primary inline-flex"> {% endcomment %}
+            <a href="{% url 'scanner:scan' %}" class="btn-primary inline-flex">
                 <i class="fas fa-camera"></i>
                 <span>Scan Your First Medicine</span>
             </a>
@@ -301,28 +301,33 @@ function closeDeleteModal() {
 
 function confirmDelete() {
     if (deleteItemId) {
-        // This would typically make an AJAX call to delete the item
-        fetch(`/delete-scan/${deleteItemId}/`, {
-            method: 'DELETE',
+        fetch(`/medicine/${deleteItemId}/delete/`, {
+            method: 'POST',
             headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                'X-CSRFToken': '{{ csrf_token }}'
             }
-        }).then(() => {
-            location.reload();
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Error deleting scan');
+            }
         });
     }
     closeDeleteModal();
 }
 
 function shareResult(medicineName, scanId) {
+    const shareUrl = `${window.location.origin}/medicine/${scanId}/`;
     if (navigator.share) {
         navigator.share({
             title: `Medicine Scan - ${medicineName}`,
             text: `Check out this medicine information from MediScan Pro`,
-            url: window.location.origin + `/scan/${scanId}/`
+            url: shareUrl
         });
     } else {
-        navigator.clipboard.writeText(window.location.origin + `/scan/${scanId}/`);
+        navigator.clipboard.writeText(shareUrl);
         alert('Link copied to clipboard!');
     }
 }

@@ -16,6 +16,19 @@
         <!-- Sign Up Form -->
         <form method="post" class="space-y-5" id="signupForm">
             {% csrf_token %}
+
+            {% if form.errors %}
+                <div class="alert alert-error animate-fade-in">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div class="text-sm">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
             
             <!-- Name Fields -->
             <div class="grid grid-cols-2 gap-4">
@@ -226,7 +239,7 @@
         <!-- Login Link -->
         <div class="text-center mt-8 p-6 bg-gradient-to-r from-primary-50 to-medical-light rounded-xl border border-primary-100">
             <p class="text-gray-600 mb-3">Already have an account?</p>
-            <a href="{% url 'login' %}" class="btn-medical w-full justify-center">
+            <a href="{% url 'scanner:login' %}" class="btn-medical w-full justify-center">
                 <i class="fas fa-sign-in-alt"></i>
                 <span>Sign In to Your Account</span>
             </a>
